@@ -1,9 +1,9 @@
 :root {
-  --paper: #f5f2ea;
+  --paper: #f4f3ee;
   --ink: #2a2620;
   --muted: #857f72;
-  --line: #e2dbc9;
-  --menu-toolbar-tint: #efebe1;
+  --line: #dfdcd2;
+  --menu-toolbar-tint: #efeee8;
   --font-display: Georgia, "Gelasio", "Times New Roman", serif;
   --font-brand: "Lexend Deca", Arial, sans-serif;
   --font-body: "Manrope", Arial, sans-serif;
@@ -28,7 +28,7 @@ img { display: block; max-width: 100%; }
   min-height: 100lvh;
   background-color: var(--paper);
   background-image:
-    linear-gradient(rgba(245, 242, 234, .34), rgba(245, 242, 234, .34)),
+    linear-gradient(rgba(244, 243, 238, .34), rgba(244, 243, 238, .34)),
     url("images/paper-texture.webp");
   background-repeat: repeat;
   background-size: auto, 1024px 1024px;
@@ -268,7 +268,7 @@ main { margin-left: var(--sidebar-width); min-width: 0; }
     bottom: -180px;
     left: 0;
     visibility: visible;
-    background: rgba(245, 242, 234, .72);
+    background: rgba(244, 243, 238, .72);
     -webkit-backdrop-filter: blur(18px) saturate(125%);
     backdrop-filter: blur(18px) saturate(125%);
     -webkit-clip-path: inset(0 0 calc(100% - 68px - env(safe-area-inset-top)) 0);
@@ -288,7 +288,7 @@ main { margin-left: var(--sidebar-width); min-width: 0; }
     left: 0;
     height: calc(clamp(190px, 24svh, 280px) + 180px + env(safe-area-inset-bottom));
     visibility: hidden;
-    background: linear-gradient(to bottom, rgba(239, 235, 225, 0) 0%, rgba(239, 235, 225, .16) 12%, rgba(239, 235, 225, .7) 26%, var(--menu-toolbar-tint) 38%, var(--menu-toolbar-tint) 100%);
+    background: linear-gradient(to bottom, rgba(239, 238, 232, 0) 0%, rgba(239, 238, 232, .16) 12%, rgba(239, 238, 232, .7) 26%, var(--menu-toolbar-tint) 38%, var(--menu-toolbar-tint) 100%);
     opacity: 0;
     pointer-events: none;
     transition: opacity 220ms ease;
