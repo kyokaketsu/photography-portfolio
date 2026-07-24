@@ -23,7 +23,17 @@ a { color: inherit; }
 button { font: inherit; }
 img { display: block; max-width: 100%; }
 
-.site-shell { min-height: 100vh; min-height: 100lvh; background: var(--paper); }
+.site-shell {
+  min-height: 100vh;
+  min-height: 100lvh;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(rgba(245, 242, 234, .34), rgba(245, 242, 234, .34)),
+    url("images/paper-texture.webp");
+  background-repeat: repeat;
+  background-size: auto, 1024px 1024px;
+  background-blend-mode: normal, multiply;
+}
 .site-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -32,7 +42,7 @@ img { display: block; max-width: 100%; }
   flex-direction: column;
   width: var(--sidebar-width);
   padding: 44px clamp(36px, 3.35vw, 54px) 38px;
-  background: var(--paper);
+  background: transparent;
 }
 .brand { font-family: var(--font-brand); font-size: 1.3rem; font-weight: 400; letter-spacing: -.04em; text-decoration: none; }
 .menu-toggle { display: none; }
