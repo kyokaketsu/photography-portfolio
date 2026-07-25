@@ -137,7 +137,7 @@ function setLightboxPhoto(index) {
   const image = button.querySelector("img");
   const title = button.dataset.title || image.alt;
   const category = button.dataset.categoryLabel || "";
-  lightboxImage.src = image.currentSrc || image.src;
+  lightboxImage.src = image.getAttribute("src") || image.src;
   lightboxImage.alt = image.alt;
   lightboxCaption.textContent = category ? `${title} — ${category}` : title;
 }
