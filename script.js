@@ -21,10 +21,23 @@ const scrollLockReasons = new Set();
 let touchStartX = null;
 let touchStartY = null;
 let menuCloseTimer = null;
+let headerScrollFrame = null;
 const menuCurtainDuration = 520;
+const headerScrollThreshold = 18;
 
 function reducedMotion() {
   return motionQuery.matches;
+}
+
+function updateMobileHeaderState() {
+  headerScrollFrame = null;
+  const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.documentElement.classList.toggle("is-header-scrolled", mobileMenuQuery.matches && scrollY > headerScrollThreshold);
+}
+
+function requestMobileHeaderUpdate() {
+  if (headerScrollFrame !== null) return;
+  headerScrollFrame = window.requestAnimationFrame(updateMobileHeaderState);
 }
 
 function setMenuOpen(isOpen) {
@@ -68,6 +81,7 @@ function closeMenu() {
 if (mobileMenuQuery.matches) {
   setMenuOpen(false);
 }
+updateMobileHeaderState();
 
 function lockPageScroll(reason) {
   scrollLockReasons.add(reason);
@@ -242,6 +256,8 @@ if ("IntersectionObserver" in window) {
 
 window.addEventListener("pageshow", recoverScrollablePage);
 window.addEventListener("resize", recoverScrollablePage, { passive: true });
+window.addEventListener("scroll", requestMobileHeaderUpdate, { passive: true });
+mobileMenuQuery.addEventListener?.("change", updateMobileHeaderState);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") recoverScrollablePage();
 });
