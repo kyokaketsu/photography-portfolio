@@ -283,9 +283,9 @@ main { margin-left: var(--sidebar-width); min-width: 0; }
     transition: -webkit-clip-path 520ms cubic-bezier(.76, 0, .24, 1), clip-path 520ms cubic-bezier(.76, 0, .24, 1), background-color 220ms ease, -webkit-backdrop-filter 220ms ease, backdrop-filter 220ms ease;
   }
   html.is-header-scrolled .menu-backdrop {
-    background: rgba(244, 243, 238, .18);
-    -webkit-backdrop-filter: blur(12px) saturate(112%);
-    backdrop-filter: blur(12px) saturate(112%);
+    background: rgba(244, 243, 238, .72);
+    -webkit-backdrop-filter: blur(18px) saturate(125%);
+    backdrop-filter: blur(18px) saturate(125%);
   }
   .menu-toolbar-blend {
     position: fixed;
