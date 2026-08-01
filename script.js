@@ -7,12 +7,16 @@ const closeButton = document.querySelector(".lightbox-close");
 const previousButton = document.querySelector(".lightbox-prev");
 const nextButton = document.querySelector(".lightbox-next");
 const photoButtons = Array.from(document.querySelectorAll(".photo-button"));
+const customCursor = document.querySelector("#custom-cursor");
+const siteShell = document.querySelector(".site-shell");
+const cursorTargets = Array.from(document.querySelectorAll(".photo-button, a, button"));
 const menu = document.querySelector("[data-menu]");
 const menuToggle = document.querySelector(".menu-toggle");
 const menuPanel = document.querySelector("#primary-navigation");
 const navItems = Array.from(document.querySelectorAll(".menu-panel a[href^='#']"));
 const revealItems = Array.from(document.querySelectorAll(".reveal-item"));
 const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const finePointerQuery = window.matchMedia("(pointer: fine) and (hover: hover)");
 const mobileMenuQuery = window.matchMedia("(max-width: 768px), (max-width: 932px) and (max-height: 520px) and (pointer: coarse)");
 
 let activePhotoIndex = -1;
@@ -29,6 +33,17 @@ let lightboxAnimationTimer = null;
 let lightboxCloseTimer = null;
 let menuCloseTimer = null;
 let headerScrollFrame = null;
+let cursorAnimationFrame = null;
+let cursorTargetX = 0;
+let cursorTargetY = 0;
+let cursorCurrentX = 0;
+let cursorCurrentY = 0;
+let cursorHasPosition = false;
+let customCursorEnabled = false;
+let lightboxPhotoRequestId = 0;
+let cancelLightboxImageWait = null;
+const preloadedImageSources = new Set();
+const activeImagePreloads = new Map();
 const menuCurtainDuration = 520;
 const headerScrollThreshold = 18;
 const lightboxDismissThreshold = 100;
@@ -37,6 +52,90 @@ const lightboxCloseDuration = 320;
 function reducedMotion() {
   return motionQuery.matches;
 }
+
+function renderCustomCursor() {
+  if (!customCursorEnabled || !customCursor) {
+    cursorAnimationFrame = null;
+    return;
+  }
+
+  const lerpFactor = reducedMotion() ? 1 : 0.15;
+  cursorCurrentX += (cursorTargetX - cursorCurrentX) * lerpFactor;
+  cursorCurrentY += (cursorTargetY - cursorCurrentY) * lerpFactor;
+  customCursor.style.setProperty("--cursor-x", `${cursorCurrentX}px`);
+  customCursor.style.setProperty("--cursor-y", `${cursorCurrentY}px`);
+
+  const stillMoving = Math.abs(cursorTargetX - cursorCurrentX) > 0.05 || Math.abs(cursorTargetY - cursorCurrentY) > 0.05;
+  cursorAnimationFrame = stillMoving ? window.requestAnimationFrame(renderCustomCursor) : null;
+}
+
+function requestCustomCursorFrame() {
+  if (cursorAnimationFrame === null) cursorAnimationFrame = window.requestAnimationFrame(renderCustomCursor);
+}
+
+function handleCursorMove(event) {
+  cursorTargetX = event.clientX;
+  cursorTargetY = event.clientY;
+  if (!cursorHasPosition) {
+    cursorCurrentX = cursorTargetX;
+    cursorCurrentY = cursorTargetY;
+    cursorHasPosition = true;
+  }
+  customCursor.classList.add("cursor-visible");
+  requestCustomCursorFrame();
+}
+
+function handleCursorTargetEnter() {
+  customCursor?.classList.add("cursor-hover-state");
+}
+
+function handleCursorTargetLeave() {
+  customCursor?.classList.remove("cursor-hover-state");
+}
+
+function handleCursorWindowExit(event) {
+  if (event.relatedTarget || event.toElement) return;
+  customCursor?.classList.remove("cursor-visible", "cursor-hover-state");
+}
+
+function enableCustomCursor() {
+  if (customCursorEnabled || !customCursor || !finePointerQuery.matches) return;
+  customCursorEnabled = true;
+  document.documentElement.classList.add("has-custom-cursor");
+  window.addEventListener("mousemove", handleCursorMove, { passive: true });
+  window.addEventListener("mouseout", handleCursorWindowExit, { passive: true });
+  cursorTargets.forEach((target) => {
+    target.addEventListener("mouseenter", handleCursorTargetEnter);
+    target.addEventListener("mouseleave", handleCursorTargetLeave);
+  });
+}
+
+function disableCustomCursor() {
+  if (!customCursorEnabled) return;
+  customCursorEnabled = false;
+  document.documentElement.classList.remove("has-custom-cursor");
+  window.removeEventListener("mousemove", handleCursorMove);
+  window.removeEventListener("mouseout", handleCursorWindowExit);
+  cursorTargets.forEach((target) => {
+    target.removeEventListener("mouseenter", handleCursorTargetEnter);
+    target.removeEventListener("mouseleave", handleCursorTargetLeave);
+  });
+  if (cursorAnimationFrame !== null) window.cancelAnimationFrame(cursorAnimationFrame);
+  cursorAnimationFrame = null;
+  cursorHasPosition = false;
+  customCursor?.classList.remove("cursor-visible", "cursor-hover-state");
+  customCursor?.style.removeProperty("--cursor-x");
+  customCursor?.style.removeProperty("--cursor-y");
+}
+
+function updateCustomCursorMode() {
+  if (finePointerQuery.matches) enableCustomCursor();
+  else disableCustomCursor();
+}
+
+if (finePointerQuery.addEventListener) finePointerQuery.addEventListener("change", updateCustomCursorMode);
+else finePointerQuery.addListener?.(updateCustomCursorMode);
+updateCustomCursorMode();
 
 if (reducedMotion() || !("IntersectionObserver" in window)) {
   revealItems.forEach((item) => item.classList.add("reveal-visible"));
@@ -166,16 +265,101 @@ function recoverScrollablePage() {
   }
 }
 
+function preloadImages(index) {
+  if (photoButtons.length < 2) return;
+  const adjacentIndices = new Set([
+    (index + 1) % photoButtons.length,
+    (index - 1 + photoButtons.length) % photoButtons.length
+  ]);
+
+  adjacentIndices.forEach((adjacentIndex) => {
+    const sourceImage = photoButtons[adjacentIndex]?.querySelector("img");
+    if (!sourceImage) return;
+
+    const source = sourceImage.getAttribute("src") || sourceImage.src;
+    const sourceSet = sourceImage.getAttribute("srcset") || "";
+    const cacheKey = `${source}|${sourceSet}`;
+    if (!source || preloadedImageSources.has(cacheKey)) return;
+
+    const preload = new Image();
+    const releasePreload = (event) => {
+      activeImagePreloads.delete(cacheKey);
+      if (event.type === "error") preloadedImageSources.delete(cacheKey);
+    };
+
+    preloadedImageSources.add(cacheKey);
+    activeImagePreloads.set(cacheKey, preload);
+    preload.decoding = "async";
+    if ("fetchPriority" in preload) preload.fetchPriority = "low";
+    preload.addEventListener("load", releasePreload, { once: true });
+    preload.addEventListener("error", releasePreload, { once: true });
+    if (sourceSet) {
+      preload.srcset = sourceSet;
+      preload.sizes = "100vw";
+    }
+    preload.src = source;
+  });
+}
+
 function setLightboxPhoto(index) {
-  if (!photoButtons.length) return;
+  if (!photoButtons.length) return null;
+  cancelLightboxImageWait?.();
+  lightboxPhotoRequestId += 1;
   activePhotoIndex = (index + photoButtons.length) % photoButtons.length;
   const button = photoButtons[activePhotoIndex];
   const image = button.querySelector("img");
   const title = button.dataset.title || image.alt;
   const category = button.dataset.categoryLabel || "";
+  
+  if (image.hasAttribute("srcset")) {
+    lightboxImage.srcset = image.getAttribute("srcset");
+    lightboxImage.sizes = "100vw";
+  } else {
+    lightboxImage.removeAttribute("srcset");
+    lightboxImage.removeAttribute("sizes");
+  }
+  
   lightboxImage.src = image.getAttribute("src") || image.src;
   lightboxImage.alt = image.alt;
   lightboxCaption.textContent = category ? `${title} — ${category}` : title;
+  preloadImages(activePhotoIndex);
+  return lightboxPhotoRequestId;
+}
+
+function clearLightboxSource() {
+  cancelLightboxImageWait?.();
+  lightboxPhotoRequestId += 1;
+  lightboxImage?.removeAttribute("src");
+  lightboxImage?.removeAttribute("srcset");
+  lightboxImage?.removeAttribute("sizes");
+  if (lightboxImage) lightboxImage.alt = "";
+  if (lightboxCaption) lightboxCaption.textContent = "";
+  activePhotoIndex = -1;
+}
+
+function setLightboxBackgroundInert(isInert) {
+  if (!siteShell) return;
+  if ("inert" in siteShell) siteShell.inert = isInert;
+  if (isInert) siteShell.setAttribute("aria-hidden", "true");
+  else siteShell.removeAttribute("aria-hidden");
+}
+
+function trapLightboxFocus(event) {
+  const focusableControls = Array.from(lightbox.querySelectorAll("button:not([disabled])"))
+    .filter((control) => control.getClientRects().length > 0);
+  if (!focusableControls.length) return;
+
+  const firstControl = focusableControls[0];
+  const lastControl = focusableControls[focusableControls.length - 1];
+  const activeElement = document.activeElement;
+
+  if (event.shiftKey && (activeElement === firstControl || !lightbox.contains(activeElement))) {
+    event.preventDefault();
+    lastControl.focus({ preventScroll: true });
+  } else if (!event.shiftKey && (activeElement === lastControl || !lightbox.contains(activeElement))) {
+    event.preventDefault();
+    firstControl.focus({ preventScroll: true });
+  }
 }
 
 function clearLightboxAnimation() {
@@ -199,19 +383,41 @@ function clearLightboxInlineStyles() {
 }
 
 function waitForLightboxImage() {
-  if (!lightboxImage || (lightboxImage.complete && lightboxImage.naturalWidth > 0)) {
-    return Promise.resolve();
-  }
+  cancelLightboxImageWait?.();
+  if (!lightboxImage) return Promise.resolve(false);
+  if (lightboxImage.complete) return Promise.resolve(lightboxImage.naturalWidth > 0);
+
   return new Promise((resolve) => {
-    const finish = () => resolve();
-    lightboxImage.addEventListener("load", finish, { once: true });
-    lightboxImage.addEventListener("error", finish, { once: true });
+    let settled = false;
+    let cancelWait = null;
+    const finish = (didLoad) => {
+      if (settled) return;
+      settled = true;
+      lightboxImage.removeEventListener("load", handleLoad);
+      lightboxImage.removeEventListener("error", handleError);
+      if (cancelLightboxImageWait === cancelWait) cancelLightboxImageWait = null;
+      resolve(didLoad);
+    };
+    const handleLoad = () => finish(true);
+    const handleError = () => finish(false);
+    cancelWait = () => finish(false);
+    cancelLightboxImageWait = cancelWait;
+    lightboxImage.addEventListener("load", handleLoad);
+    lightboxImage.addEventListener("error", handleError);
+
+    Promise.resolve().then(() => {
+      if (lightboxImage.complete) finish(lightboxImage.naturalWidth > 0);
+    });
   });
 }
 
-async function animateLightboxFrom(sourceRect) {
-  await waitForLightboxImage();
-  if (!lightbox?.classList.contains("is-open") || !lightboxImage) return;
+async function animateLightboxFrom(sourceRect, requestId) {
+  const didLoad = await waitForLightboxImage();
+  if (!lightbox?.classList.contains("is-open") || !lightboxImage || requestId !== lightboxPhotoRequestId) return;
+  if (!didLoad) {
+    lightboxImage.style.opacity = "1";
+    return;
+  }
 
   const finalRect = lightboxImage.getBoundingClientRect();
   if (reducedMotion() || !sourceRect || !finalRect.width || !finalRect.height) {
@@ -254,25 +460,30 @@ async function openLightbox(button) {
   window.clearTimeout(lightboxCloseTimer);
   clearLightboxInlineStyles();
   lightboxImage.style.opacity = "0";
-  setLightboxPhoto(photoButtons.indexOf(button));
+  const requestId = setLightboxPhoto(photoButtons.indexOf(button));
   lightbox.classList.add("is-open");
+  document.documentElement.classList.add("is-lightbox-open");
   lightbox.setAttribute("aria-hidden", "false");
   lockPageScroll("lightbox");
   closeButton.focus({ preventScroll: true });
-  await animateLightboxFrom(sourceRect);
+  setLightboxBackgroundInert(true);
+  await animateLightboxFrom(sourceRect, requestId);
 }
 
 function finishLightboxClose() {
   if (!lightbox) return;
   lightbox.classList.remove("is-open", "is-closing", "is-dragging");
+  document.documentElement.classList.remove("is-lightbox-open");
   lightbox.setAttribute("aria-hidden", "true");
   const restoreY = unlockPageScroll("lightbox");
+  setLightboxBackgroundInert(false);
   clearLightboxInlineStyles();
-  if (!lightbox.classList.contains("is-open")) lightboxImage.src = "";
+  clearLightboxSource();
   if (lastFocusedElement) {
     try { lastFocusedElement.focus({ preventScroll: true }); }
     catch { lastFocusedElement.focus(); restoreScrollPosition(restoreY); }
   }
+  lastFocusedElement = null;
 }
 
 function closeLightbox({ fromDrag = false } = {}) {
@@ -409,6 +620,7 @@ lightboxContent?.addEventListener("touchcancel", () => {
 
 document.addEventListener("keydown", (event) => {
   if (lightbox?.classList.contains("is-open")) {
+    if (event.key === "Tab") { trapLightboxFocus(event); return; }
     if (event.key === "Escape") closeLightbox();
     if (event.key === "ArrowLeft") { event.preventDefault(); changeLightboxPhoto(-1); }
     if (event.key === "ArrowRight") { event.preventDefault(); changeLightboxPhoto(1); }

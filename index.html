@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Gelasio:wght@400&family=IBM+Plex+Mono:wght@200;300&family=Lexend+Deca:wght@400&family=Manrope:wght@200;300&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css?v=interactive-scroll-flip-v1" />
+    <link rel="stylesheet" href="style.css?v=lightbox-a11y-cleanup-v1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -49,6 +49,11 @@
         }
       }
     </script>
+    <noscript>
+      <style>
+        .reveal-item { opacity: 1 !important; transform: none !important; filter: none !important; }
+      </style>
+    </noscript>
   </head>
   <body>
     <div class="menu-backdrop" aria-hidden="true"></div>
@@ -174,6 +179,8 @@
       </main>
     </div>
 
+    <div id="custom-cursor" aria-hidden="true"></div>
+
     <div class="lightbox" id="lightbox" aria-hidden="true" aria-modal="true" role="dialog">
       <button class="lightbox-close" type="button" aria-label="Close preview">×</button>
       <div class="lightbox-backdrop" data-close-lightbox></div>
@@ -181,6 +188,6 @@
       <figure class="lightbox-content"><img id="lightbox-image" src="" alt="" /><figcaption id="lightbox-caption" aria-live="polite"></figcaption></figure>
       <button class="lightbox-nav lightbox-next" type="button" aria-label="Next photograph" aria-controls="lightbox-image">→</button>
     </div>
-    <script src="script.js?v=interactive-scroll-flip-v1"></script>
+    <script src="script.js?v=lightbox-a11y-cleanup-v1"></script>
   </body>
 </html>
