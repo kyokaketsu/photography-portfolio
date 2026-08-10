@@ -7,16 +7,13 @@ const closeButton = document.querySelector(".lightbox-close");
 const previousButton = document.querySelector(".lightbox-prev");
 const nextButton = document.querySelector(".lightbox-next");
 const photoButtons = Array.from(document.querySelectorAll(".photo-button"));
-const customCursor = document.querySelector("#custom-cursor");
 const siteShell = document.querySelector(".site-shell");
-const cursorTargets = Array.from(document.querySelectorAll(".photo-button, a, button"));
 const menu = document.querySelector("[data-menu]");
 const menuToggle = document.querySelector(".menu-toggle");
 const menuPanel = document.querySelector("#primary-navigation");
 const navItems = Array.from(document.querySelectorAll(".menu-panel a[href^='#']"));
 const revealItems = Array.from(document.querySelectorAll(".reveal-item"));
 const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-const finePointerQuery = window.matchMedia("(pointer: fine) and (hover: hover)");
 const mobileMenuQuery = window.matchMedia("(max-width: 768px), (max-width: 932px) and (max-height: 520px) and (pointer: coarse)");
 
 let activePhotoIndex = -1;
@@ -36,13 +33,6 @@ let pendingLightboxSrcset = "";
 let lightboxCloseTimer = null;
 let menuCloseTimer = null;
 let headerScrollFrame = null;
-let cursorAnimationFrame = null;
-let cursorTargetX = 0;
-let cursorTargetY = 0;
-let cursorCurrentX = 0;
-let cursorCurrentY = 0;
-let cursorHasPosition = false;
-let customCursorEnabled = false;
 let lightboxPhotoRequestId = 0;
 let cancelLightboxImageWait = null;
 const preloadedImageSources = new Set();
@@ -58,93 +48,6 @@ const lightboxOpenEasing = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 function reducedMotion() {
   return motionQuery.matches;
 }
-
-function renderCustomCursor() {
-  if (!customCursorEnabled || !customCursor) {
-    cursorAnimationFrame = null;
-    return;
-  }
-
-  const lerpFactor = reducedMotion() ? 1 : 0.15;
-  cursorCurrentX += (cursorTargetX - cursorCurrentX) * lerpFactor;
-  cursorCurrentY += (cursorTargetY - cursorCurrentY) * lerpFactor;
-  customCursor.style.setProperty("--cursor-x", `${cursorCurrentX}px`);
-  customCursor.style.setProperty("--cursor-y", `${cursorCurrentY}px`);
-
-  const stillMoving = Math.abs(cursorTargetX - cursorCurrentX) > 0.05 || Math.abs(cursorTargetY - cursorCurrentY) > 0.05;
-  cursorAnimationFrame = stillMoving ? window.requestAnimationFrame(renderCustomCursor) : null;
-}
-
-function requestCustomCursorFrame() {
-  if (cursorAnimationFrame === null) cursorAnimationFrame = window.requestAnimationFrame(renderCustomCursor);
-}
-
-function handleCursorMove(event) {
-  cursorTargetX = event.clientX;
-  cursorTargetY = event.clientY;
-  if (!cursorHasPosition) {
-    cursorCurrentX = cursorTargetX;
-    cursorCurrentY = cursorTargetY;
-    cursorHasPosition = true;
-  }
-  customCursor.classList.add("cursor-visible");
-  requestCustomCursorFrame();
-}
-
-function handleCursorTargetEnter(event) {
-  customCursor?.classList.add("cursor-hover-state");
-  if (event.currentTarget?.classList.contains("photo-button")) {
-    customCursor?.classList.add("cursor-photo-state");
-  }
-}
-
-function handleCursorTargetLeave() {
-  customCursor?.classList.remove("cursor-hover-state", "cursor-photo-state");
-}
-
-function handleCursorWindowExit(event) {
-  if (event.relatedTarget || event.toElement) return;
-  customCursor?.classList.remove("cursor-visible", "cursor-hover-state", "cursor-photo-state");
-}
-
-function enableCustomCursor() {
-  if (customCursorEnabled || !customCursor || !finePointerQuery.matches) return;
-  customCursorEnabled = true;
-  document.documentElement.classList.add("has-custom-cursor");
-  window.addEventListener("mousemove", handleCursorMove, { passive: true });
-  window.addEventListener("mouseout", handleCursorWindowExit, { passive: true });
-  cursorTargets.forEach((target) => {
-    target.addEventListener("mouseenter", handleCursorTargetEnter);
-    target.addEventListener("mouseleave", handleCursorTargetLeave);
-  });
-}
-
-function disableCustomCursor() {
-  if (!customCursorEnabled) return;
-  customCursorEnabled = false;
-  document.documentElement.classList.remove("has-custom-cursor");
-  window.removeEventListener("mousemove", handleCursorMove);
-  window.removeEventListener("mouseout", handleCursorWindowExit);
-  cursorTargets.forEach((target) => {
-    target.removeEventListener("mouseenter", handleCursorTargetEnter);
-    target.removeEventListener("mouseleave", handleCursorTargetLeave);
-  });
-  if (cursorAnimationFrame !== null) window.cancelAnimationFrame(cursorAnimationFrame);
-  cursorAnimationFrame = null;
-  cursorHasPosition = false;
-  customCursor?.classList.remove("cursor-visible", "cursor-hover-state", "cursor-photo-state");
-  customCursor?.style.removeProperty("--cursor-x");
-  customCursor?.style.removeProperty("--cursor-y");
-}
-
-function updateCustomCursorMode() {
-  if (finePointerQuery.matches) enableCustomCursor();
-  else disableCustomCursor();
-}
-
-if (finePointerQuery.addEventListener) finePointerQuery.addEventListener("change", updateCustomCursorMode);
-else finePointerQuery.addListener?.(updateCustomCursorMode);
-updateCustomCursorMode();
 
 if (reducedMotion() || !("IntersectionObserver" in window)) {
   revealItems.forEach((item) => item.classList.add("reveal-visible"));
