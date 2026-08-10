@@ -30,6 +30,9 @@ let touchGesture = null;
 let dragDistanceY = 0;
 let lightboxAnimationFrame = null;
 let lightboxAnimationTimer = null;
+let lightboxSettleTimer = null;
+let lightboxUpgradeTimer = null;
+let pendingLightboxSrcset = "";
 let lightboxCloseTimer = null;
 let menuCloseTimer = null;
 let headerScrollFrame = null;
@@ -48,6 +51,9 @@ const menuCurtainDuration = 520;
 const headerScrollThreshold = 18;
 const lightboxDismissThreshold = 100;
 const lightboxCloseDuration = 320;
+// 与 style.css 的 --dur-lightbox / --ease-lightbox 保持一致
+const lightboxOpenDuration = 420;
+const lightboxOpenEasing = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 
 function reducedMotion() {
   return motionQuery.matches;
@@ -85,17 +91,20 @@ function handleCursorMove(event) {
   requestCustomCursorFrame();
 }
 
-function handleCursorTargetEnter() {
+function handleCursorTargetEnter(event) {
   customCursor?.classList.add("cursor-hover-state");
+  if (event.currentTarget?.classList.contains("photo-button")) {
+    customCursor?.classList.add("cursor-photo-state");
+  }
 }
 
 function handleCursorTargetLeave() {
-  customCursor?.classList.remove("cursor-hover-state");
+  customCursor?.classList.remove("cursor-hover-state", "cursor-photo-state");
 }
 
 function handleCursorWindowExit(event) {
   if (event.relatedTarget || event.toElement) return;
-  customCursor?.classList.remove("cursor-visible", "cursor-hover-state");
+  customCursor?.classList.remove("cursor-visible", "cursor-hover-state", "cursor-photo-state");
 }
 
 function enableCustomCursor() {
@@ -123,7 +132,7 @@ function disableCustomCursor() {
   if (cursorAnimationFrame !== null) window.cancelAnimationFrame(cursorAnimationFrame);
   cursorAnimationFrame = null;
   cursorHasPosition = false;
-  customCursor?.classList.remove("cursor-visible", "cursor-hover-state");
+  customCursor?.classList.remove("cursor-visible", "cursor-hover-state", "cursor-photo-state");
   customCursor?.style.removeProperty("--cursor-x");
   customCursor?.style.removeProperty("--cursor-y");
 }
@@ -148,6 +157,26 @@ if (reducedMotion() || !("IntersectionObserver" in window)) {
     });
   }, { rootMargin: "0px 0px -10% 0px", threshold: 0 });
   revealItems.forEach((item) => revealObserver.observe(item));
+}
+
+const galleryImages = Array.from(document.querySelectorAll(".photo-button img"));
+
+if (!reducedMotion() && galleryImages.length) {
+  // 只有在 JS 真正接管之后才允许隐藏图片,脚本失败时照片仍会正常显示
+  document.documentElement.classList.add("js-image-fade");
+  galleryImages.forEach((image) => {
+    if (image.complete && image.naturalWidth > 0) {
+      image.classList.add("is-loaded");
+      return;
+    }
+    const settleImage = () => {
+      image.removeEventListener("load", settleImage);
+      image.removeEventListener("error", settleImage);
+      image.classList.add("is-loaded");
+    };
+    image.addEventListener("load", settleImage);
+    image.addEventListener("error", settleImage);
+  });
 }
 
 function updateMobileHeaderState() {
@@ -304,30 +333,58 @@ function preloadImages(index) {
 function setLightboxPhoto(index) {
   if (!photoButtons.length) return null;
   cancelLightboxImageWait?.();
+  window.clearTimeout(lightboxUpgradeTimer);
+  lightboxUpgradeTimer = null;
   lightboxPhotoRequestId += 1;
+  const requestId = lightboxPhotoRequestId;
   activePhotoIndex = (index + photoButtons.length) % photoButtons.length;
   const button = photoButtons[activePhotoIndex];
   const image = button.querySelector("img");
   const title = button.dataset.title || image.alt;
   const category = button.dataset.categoryLabel || "";
-  
-  if (image.hasAttribute("srcset")) {
-    lightboxImage.srcset = image.getAttribute("srcset");
-    lightboxImage.sizes = "100vw";
-  } else {
+
+  // 先用缩略图已经下载过的那一档,保证展开动画立刻起步;
+  // 高清档等动画开始后再换上,网络慢时不会把整个动画堵住。
+  const sourceSet = image.getAttribute("srcset") || "";
+  const cachedSource = image.complete && image.naturalWidth > 0 ? image.currentSrc : "";
+
+  if (cachedSource && sourceSet) {
+    pendingLightboxSrcset = sourceSet;
     lightboxImage.removeAttribute("srcset");
     lightboxImage.removeAttribute("sizes");
+    lightboxImage.src = cachedSource;
+  } else {
+    // 缩略图自己都还没下载完,缓存里没有可复用的档,直接走完整响应式集合
+    pendingLightboxSrcset = "";
+    if (sourceSet) {
+      lightboxImage.sizes = "86vw";
+      lightboxImage.srcset = sourceSet;
+    } else {
+      lightboxImage.removeAttribute("srcset");
+      lightboxImage.removeAttribute("sizes");
+    }
+    lightboxImage.src = cachedSource || image.getAttribute("src") || image.src;
   }
-  
-  lightboxImage.src = image.getAttribute("src") || image.src;
+
   lightboxImage.alt = image.alt;
   lightboxCaption.textContent = category ? `${title} — ${category}` : title;
   preloadImages(activePhotoIndex);
-  return lightboxPhotoRequestId;
+  return requestId;
+}
+
+function upgradeLightboxSource(requestId) {
+  if (!pendingLightboxSrcset || !lightboxImage || requestId !== lightboxPhotoRequestId) return;
+  const nextSrcset = pendingLightboxSrcset;
+  pendingLightboxSrcset = "";
+  lightboxImage.sizes = "86vw";
+  lightboxImage.srcset = nextSrcset;
 }
 
 function clearLightboxSource() {
   cancelLightboxImageWait?.();
+  window.clearTimeout(lightboxUpgradeTimer);
+  lightboxUpgradeTimer = null;
+  pendingLightboxSrcset = "";
   lightboxPhotoRequestId += 1;
   lightboxImage?.removeAttribute("src");
   lightboxImage?.removeAttribute("srcset");
@@ -353,7 +410,11 @@ function trapLightboxFocus(event) {
   const lastControl = focusableControls[focusableControls.length - 1];
   const activeElement = document.activeElement;
 
-  if (event.shiftKey && (activeElement === firstControl || !lightbox.contains(activeElement))) {
+  const atFocusStart = activeElement === firstControl
+    || activeElement === lightbox
+    || !lightbox.contains(activeElement);
+
+  if (event.shiftKey && atFocusStart) {
     event.preventDefault();
     lastControl.focus({ preventScroll: true });
   } else if (!event.shiftKey && (activeElement === lastControl || !lightbox.contains(activeElement))) {
@@ -369,6 +430,8 @@ function clearLightboxAnimation() {
   }
   window.clearTimeout(lightboxAnimationTimer);
   lightboxAnimationTimer = null;
+  window.clearTimeout(lightboxSettleTimer);
+  lightboxSettleTimer = null;
 }
 
 function clearLightboxInlineStyles() {
@@ -416,12 +479,14 @@ async function animateLightboxFrom(sourceRect, requestId) {
   if (!lightbox?.classList.contains("is-open") || !lightboxImage || requestId !== lightboxPhotoRequestId) return;
   if (!didLoad) {
     lightboxImage.style.opacity = "1";
+    upgradeLightboxSource(requestId);
     return;
   }
 
   const finalRect = lightboxImage.getBoundingClientRect();
   if (reducedMotion() || !sourceRect || !finalRect.width || !finalRect.height) {
     lightboxImage.style.opacity = "1";
+    upgradeLightboxSource(requestId);
     return;
   }
 
@@ -429,26 +494,39 @@ async function animateLightboxFrom(sourceRect, requestId) {
   const translateY = sourceRect.top + sourceRect.height / 2 - (finalRect.top + finalRect.height / 2);
   const scale = Math.min(sourceRect.width / finalRect.width, sourceRect.height / finalRect.height);
 
+  // 起始帧直接落在缩略图的位置和尺寸上,并且立刻完全可见。
+  // 这里刻意不做淡入:淡入会让放大过程的前段是空的,
+  // 反而破坏“照片从你点的那一张长出来”的连续感。
   lightboxImage.style.transition = "none";
   lightboxImage.style.transformOrigin = "center center";
   lightboxImage.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
-  lightboxImage.style.opacity = "0";
+  lightboxImage.style.opacity = "1";
   lightboxImage.getBoundingClientRect();
 
-  lightboxAnimationFrame = window.requestAnimationFrame(() => {
-    lightboxAnimationFrame = null;
-    if (!lightbox.classList.contains("is-open")) return;
-    lightboxImage.style.transition = "transform 460ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 220ms ease-out";
+  let committed = false;
+  const commitOpenAnimation = () => {
+    if (committed) return;
+    committed = true;
+    clearLightboxAnimation();
+    if (!lightbox.classList.contains("is-open") || requestId !== lightboxPhotoRequestId) return;
+
+    lightboxImage.style.transition = `transform ${lightboxOpenDuration}ms ${lightboxOpenEasing}`;
     lightboxImage.style.transform = "translate3d(0, 0, 0) scale(1)";
-    lightboxImage.style.opacity = "1";
-    lightboxAnimationTimer = window.setTimeout(() => {
+    upgradeLightboxSource(requestId);
+
+    lightboxSettleTimer = window.setTimeout(() => {
+      lightboxSettleTimer = null;
       if (!lightbox.classList.contains("is-open") || lightbox.classList.contains("is-dragging")) return;
       lightboxImage.style.removeProperty("transition");
       lightboxImage.style.removeProperty("transform");
       lightboxImage.style.removeProperty("transform-origin");
       lightboxImage.style.removeProperty("opacity");
-    }, 480);
-  });
+    }, lightboxOpenDuration + 40);
+  };
+
+  lightboxAnimationFrame = window.requestAnimationFrame(commitOpenAnimation);
+  // 兜底:标签页在后台时 rAF 不会触发,不能让照片永久停在缩小且未归位的状态
+  lightboxAnimationTimer = window.setTimeout(commitOpenAnimation, 120);
 }
 
 async function openLightbox(button) {
@@ -465,7 +543,9 @@ async function openLightbox(button) {
   document.documentElement.classList.add("is-lightbox-open");
   lightbox.setAttribute("aria-hidden", "false");
   lockPageScroll("lightbox");
-  closeButton.focus({ preventScroll: true });
+  // 聚焦对话框本身而不是关闭按钮:后者会在开场第一帧就画出白色焦点框,
+  // 那时背景遮罩还没暗下来,看起来像是闪了一下。
+  lightbox.focus({ preventScroll: true });
   setLightboxBackgroundInert(true);
   await animateLightboxFrom(sourceRect, requestId);
 }
@@ -496,7 +576,7 @@ function closeLightbox({ fromDrag = false } = {}) {
     return;
   }
 
-  lightboxImage.style.transition = "transform 300ms cubic-bezier(0.4, 0, 1, 1), opacity 240ms ease-out";
+  lightboxImage.style.transition = "transform 300ms cubic-bezier(0.4, 0, 1, 1), opacity 300ms ease-out";
   lightboxImage.style.transform = fromDrag
     ? `translate3d(0, ${Math.max(dragDistanceY + 140, window.innerHeight * 0.34)}px, 0) scale(0.82)`
     : "translate3d(0, 18px, 0) scale(0.96)";
@@ -509,7 +589,12 @@ function closeLightbox({ fromDrag = false } = {}) {
 function changeLightboxPhoto(direction) {
   if (!lightbox?.classList.contains("is-open") || lightbox.classList.contains("is-closing")) return;
   clearLightboxInlineStyles();
-  setLightboxPhoto(activePhotoIndex + direction);
+  const requestId = setLightboxPhoto(activePhotoIndex + direction);
+  // 翻页没有 FLIP 动画,缓存档先显示,稍后再静默换成高清档
+  lightboxUpgradeTimer = window.setTimeout(() => {
+    lightboxUpgradeTimer = null;
+    upgradeLightboxSource(requestId);
+  }, 80);
 }
 
 function resetTouchTracking() {

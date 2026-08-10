@@ -27,7 +27,7 @@
     <link rel="manifest" href="site.webmanifest" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
-    <link rel="stylesheet" href="style.css?v=local-fonts-v1" />
+    <link rel="stylesheet" href="style.css?v=lightbox-motion-v2" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -178,13 +178,13 @@
 
     <div id="custom-cursor" aria-hidden="true"></div>
 
-    <div class="lightbox" id="lightbox" aria-hidden="true" aria-modal="true" role="dialog">
+    <div class="lightbox" id="lightbox" tabindex="-1" aria-hidden="true" aria-modal="true" role="dialog" aria-label="Photograph preview">
       <button class="lightbox-close" type="button" aria-label="Close preview">×</button>
       <div class="lightbox-backdrop" data-close-lightbox></div>
       <button class="lightbox-nav lightbox-prev" type="button" aria-label="Previous photograph" aria-controls="lightbox-image">←</button>
       <figure class="lightbox-content"><img id="lightbox-image" src="" alt="" /><figcaption id="lightbox-caption" aria-live="polite"></figcaption></figure>
       <button class="lightbox-nav lightbox-next" type="button" aria-label="Next photograph" aria-controls="lightbox-image">→</button>
     </div>
-    <script src="script.js?v=local-fonts-v1"></script>
+    <script src="script.js?v=lightbox-motion-v2"></script>
   </body>
 </html>
