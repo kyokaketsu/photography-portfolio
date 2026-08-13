@@ -53,8 +53,8 @@
   --font-brand: "Lexend Deca", Arial, sans-serif;
   --font-body: "Manrope", Arial, sans-serif;
   --font-meta: "IBM Plex Mono", monospace;
-  --sidebar-width: clamp(280px, 21vw, 336px);
-  --content-padding: clamp(44px, 6.5vw, 126px);
+  --sidebar-width: clamp(184px, 13vw, 244px);
+  --content-padding: clamp(38px, 3.6vw, 72px);
 }
 
 * { box-sizing: border-box; }
@@ -89,6 +89,7 @@ img { display: block; max-width: 100%; }
   width: var(--sidebar-width);
   padding: 44px clamp(36px, 3.35vw, 54px) 38px;
   background: transparent;
+  border-right: 1px solid var(--line);
 }
 .brand { font-family: var(--font-brand); font-size: 1.3rem; font-weight: 400; letter-spacing: -.04em; text-decoration: none; }
 .menu-toggle { display: none; }
@@ -218,6 +219,102 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   }
 }
 
+/* Desktop editorial sequence: compact, asymmetric groups inspired by a printed contact sheet. */
+@media (min-width: 1201px) {
+  .site-sidebar { padding-right: clamp(24px, 2.4vw, 42px); padding-left: clamp(24px, 2.4vw, 42px); }
+  .menu-panel { gap: 15px; }
+  .menu-panel a,
+  .menu-panel .nav-sub { font-size: .78rem; }
+  .sidebar-meta { font-size: .7rem; }
+
+  .works-section { padding-top: clamp(92px, 12vh, 138px); }
+  .works-intro { margin-bottom: clamp(104px, 14vh, 160px); }
+  .work-series { position: relative; }
+  .work-series + .work-series {
+    margin-top: clamp(150px, 20vh, 240px);
+    padding-top: clamp(48px, 7vh, 76px);
+  }
+
+  .series-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-height: 24px;
+    margin-bottom: clamp(42px, 5vh, 64px);
+  }
+  .series-number,
+  .series-copy h3,
+  .movement-label {
+    font-family: var(--font-body);
+    font-size: .72rem;
+    font-weight: 400;
+    letter-spacing: .01em;
+    line-height: 1.2;
+    text-transform: none;
+  }
+  .series-number { margin: 0; color: var(--ink); }
+  .series-copy h3 { color: var(--ink); }
+  .series-copy p,
+  .series-count { display: none; }
+  .work-series .movement:first-child > .movement-label {
+    position: absolute;
+    top: 1px;
+    left: clamp(150px, 13vw, 250px);
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .work-series .gallery.movements {
+    width: 100%;
+    margin-left: 0;
+  }
+  .movement {
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    column-gap: clamp(10px, 1vw, 18px);
+    row-gap: clamp(88px, 12vh, 150px);
+  }
+  .movement:not(:last-child) { margin-bottom: clamp(132px, 18vh, 210px); }
+  .movement-label {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* Opening triptychs: three independent scales share one visual horizon. */
+  .movement-city .lead,
+  .movement-pressure .lead { grid-column: 1 / 11; grid-row: 2; }
+  .movement-city .reply,
+  .movement-pressure .reply { grid-column: 11 / 20; grid-row: 2; margin-top: clamp(96px, 15vh, 170px); }
+  .movement-city .afterthought,
+  .movement-pressure .afterthought { grid-column: 20 / 25; grid-row: 2; margin-top: clamp(50px, 8vh, 96px); }
+
+  .movement-city .pair-left { grid-column: 2 / 11; grid-row: 3; }
+  .movement-city .pair-right { grid-column: 14 / 23; grid-row: 3; margin-top: clamp(60px, 9vh, 105px); }
+  .movement-city .climax { grid-column: 4 / 22; grid-row: 4; margin-top: 0; }
+  .movement-city .mist { grid-column: 14 / 24; grid-row: 5; margin-top: 0; }
+
+  .movement-waterline .lead { grid-column: 1 / 12; grid-row: 2; }
+  .movement-waterline .reply { grid-column: 12 / 19; grid-row: 2; margin-top: clamp(110px, 17vh, 190px); }
+  .movement-waterline .quiet { grid-column: 19 / 25; grid-row: 2; margin-top: clamp(42px, 7vh, 82px); }
+  .movement-waterline .pair-left { grid-column: 2 / 11; grid-row: 3; }
+  .movement-waterline .pair-right { grid-column: 14 / 23; grid-row: 3; margin-top: clamp(56px, 8vh, 98px); }
+  .movement-waterline .climax { grid-column: 4 / 22; grid-row: 4; margin-top: 0; }
+  .movement-waterline .coda { grid-column: 1 / -1; grid-row: 5; margin-top: clamp(30px, 5vh, 64px) !important; }
+
+  .movement-passage .quiet { grid-column: 1 / 8; grid-row: 2; }
+  .movement-passage .climax { grid-column: 8 / 20; grid-row: 2; margin-top: clamp(96px, 15vh, 170px); }
+  .movement-passage .mist { grid-column: 20 / 25; grid-row: 2; margin-top: clamp(42px, 7vh, 82px); }
+
+  .movement-trace .pair-left { grid-column: 1 / 12; grid-row: 2; }
+  .movement-trace .pair-right { grid-column: 14 / 25; grid-row: 2; margin-top: clamp(70px, 10vh, 116px); }
+  .movement-trace .afterthought { grid-column: 5 / 16; grid-row: 3; margin-top: 0; }
+  .movement-trace .coda-final { grid-column: 1 / -1; grid-row: 4; margin-top: clamp(28px, 5vh, 62px) !important; }
+
+  .movement .lead img,
+  .movement .climax img { max-height: none; }
+}
+
 /* iPadOS/tablet: retain the desktop exhibition language without desktop-scale compression. */
 @media (min-width: 769px) and (max-width: 1200px) {
   :root {
@@ -322,6 +419,7 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
     padding: env(safe-area-inset-top) 20px 0;
     background: transparent;
     border-bottom: 0;
+    border-right: 0;
   }
   .site-sidebar::before { position: absolute; z-index: 0; inset: 0; border-bottom: 1px solid transparent; background: transparent; content: ""; pointer-events: none; transition: border-color 220ms ease; }
   html.is-header-scrolled .site-sidebar::before { border-bottom-color: rgba(226, 219, 201, .42); }
@@ -482,8 +580,11 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   .works-section { padding: 86px 20px 118px; }
   .works-intro { margin-bottom: 100px; }
   .works-intro h2 { font-size: clamp(2.2rem, 12vw, 3.45rem); }
-  .series-heading { grid-template-columns: 38px minmax(0, 1fr); gap: 14px; margin-bottom: 56px; }
-  .series-count { grid-column: 2; margin-top: -6px; }
+  .series-heading { display: block; margin-bottom: 56px; }
+  .series-number { margin: 0 0 8px; }
+  .series-copy h3 { font-size: 1.35rem; }
+  .series-count { margin-top: 12px; font-size: .66rem; letter-spacing: .04em; white-space: normal; }
+  .series-copy p { display: none; }
   .work-series + .work-series { margin-top: 142px; padding-top: 72px; }
   .work-series .gallery.movements { width: calc(100% + 40px); margin-left: -20px; }
   .movement { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 0; row-gap: clamp(64px, 17vw, 92px); }
