@@ -47,8 +47,6 @@
   --muted: #706b61;
   --line: #dfdcd2;
   --menu-toolbar-tint: #efeee8;
-  --dur-lightbox: 420ms;
-  --ease-lightbox: cubic-bezier(0.215, 0.61, 0.355, 1);
   --font-display: Georgia, "Gelasio", "Times New Roman", serif;
   --font-brand: "Lexend Deca", Arial, sans-serif;
   --font-body: "Manrope", Arial, sans-serif;
@@ -391,7 +389,7 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
 .lightbox { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; visibility: hidden; pointer-events: none; }
 .lightbox:focus, .lightbox:focus-visible { outline: none; }
 .lightbox.is-open { visibility: visible; pointer-events: auto; }
-.lightbox-backdrop { position: absolute; inset: 0; background: rgba(18, 18, 17, .94); opacity: 0; transition: opacity var(--dur-lightbox) var(--ease-lightbox); will-change: opacity; }
+.lightbox-backdrop { position: absolute; inset: 0; background: rgba(18, 18, 17, .94); opacity: 0; }
 .lightbox.is-open .lightbox-backdrop { opacity: 1; }
 .lightbox-content { position: relative; z-index: 1; max-width: min(86vw, 1400px); max-height: 86vh; margin: 0; touch-action: none; }
 .lightbox-content img { width: auto; max-width: 100%; max-height: calc(86vh - 34px); object-fit: contain; opacity: 1; transform: translate3d(0, 0, 0) scale(1); transform-origin: center; backface-visibility: hidden; will-change: transform, opacity; }
@@ -627,19 +625,28 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   margin-top: 0 !important;
 }
 .work-series-field .movement .work-card img {
-  width: 100%;
-  max-height: none;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(100svh - 72px);
+  margin-inline: auto;
 }
 .work-series-field .movement figcaption {
   margin: 12px var(--content-padding) 0;
 }
 
 @media (min-width: 769px) {
-  .work-series-field .movement .work-card img[width="1200"][height="1800"] {
-    width: auto;
-    max-width: 100%;
-    height: min(100svh, 1440px);
-    margin-inline: auto;
+  .work-series-field .photo-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: calc(100svh - 72px);
+  }
+  .work-series-field .movement .work-card img {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
   }
 }
 

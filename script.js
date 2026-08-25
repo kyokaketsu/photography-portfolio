@@ -30,7 +30,6 @@ let lightboxAnimationTimer = null;
 let lightboxSettleTimer = null;
 let lightboxUpgradeTimer = null;
 let pendingLightboxSrcset = "";
-let lightboxCloseTimer = null;
 let menuCloseTimer = null;
 let headerScrollFrame = null;
 let lightboxPhotoRequestId = 0;
@@ -40,10 +39,6 @@ const activeImagePreloads = new Map();
 const menuCurtainDuration = 300;
 const headerScrollThreshold = 18;
 const lightboxDismissThreshold = 100;
-const lightboxCloseDuration = 320;
-// 与 style.css 的 --dur-lightbox / --ease-lightbox 保持一致
-const lightboxOpenDuration = 420;
-const lightboxOpenEasing = "cubic-bezier(0.215, 0.61, 0.355, 1)";
 
 function reducedMotion() {
   return motionQuery.matches;
@@ -377,70 +372,12 @@ function waitForLightboxImage() {
   });
 }
 
-async function animateLightboxFrom(sourceRect, requestId) {
-  const didLoad = await waitForLightboxImage();
-  if (!lightbox?.classList.contains("is-open") || !lightboxImage || requestId !== lightboxPhotoRequestId) return;
-  if (!didLoad) {
-    lightboxImage.style.opacity = "1";
-    upgradeLightboxSource(requestId);
-    return;
-  }
-
-  const finalRect = lightboxImage.getBoundingClientRect();
-  if (reducedMotion() || !sourceRect || !finalRect.width || !finalRect.height) {
-    lightboxImage.style.opacity = "1";
-    upgradeLightboxSource(requestId);
-    return;
-  }
-
-  const translateX = sourceRect.left + sourceRect.width / 2 - (finalRect.left + finalRect.width / 2);
-  const translateY = sourceRect.top + sourceRect.height / 2 - (finalRect.top + finalRect.height / 2);
-  const scale = Math.min(sourceRect.width / finalRect.width, sourceRect.height / finalRect.height);
-
-  // 起始帧直接落在缩略图的位置和尺寸上,并且立刻完全可见。
-  // 这里刻意不做淡入:淡入会让放大过程的前段是空的,
-  // 反而破坏“照片从你点的那一张长出来”的连续感。
-  lightboxImage.style.transition = "none";
-  lightboxImage.style.transformOrigin = "center center";
-  lightboxImage.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
-  lightboxImage.style.opacity = "1";
-  lightboxImage.getBoundingClientRect();
-
-  let committed = false;
-  const commitOpenAnimation = () => {
-    if (committed) return;
-    committed = true;
-    clearLightboxAnimation();
-    if (!lightbox.classList.contains("is-open") || requestId !== lightboxPhotoRequestId) return;
-
-    lightboxImage.style.transition = `transform ${lightboxOpenDuration}ms ${lightboxOpenEasing}`;
-    lightboxImage.style.transform = "translate3d(0, 0, 0) scale(1)";
-    upgradeLightboxSource(requestId);
-
-    lightboxSettleTimer = window.setTimeout(() => {
-      lightboxSettleTimer = null;
-      if (!lightbox.classList.contains("is-open") || lightbox.classList.contains("is-dragging")) return;
-      lightboxImage.style.removeProperty("transition");
-      lightboxImage.style.removeProperty("transform");
-      lightboxImage.style.removeProperty("transform-origin");
-      lightboxImage.style.removeProperty("opacity");
-    }, lightboxOpenDuration + 40);
-  };
-
-  lightboxAnimationFrame = window.requestAnimationFrame(commitOpenAnimation);
-  // 兜底:标签页在后台时 rAF 不会触发,不能让照片永久停在缩小且未归位的状态
-  lightboxAnimationTimer = window.setTimeout(commitOpenAnimation, 120);
-}
-
 async function openLightbox(button) {
   if (!lightbox) return;
-  const clickedImage = button.querySelector("img");
-  const sourceRect = clickedImage?.getBoundingClientRect();
   closeMenu();
   lastFocusedElement = document.activeElement;
-  window.clearTimeout(lightboxCloseTimer);
   clearLightboxInlineStyles();
-  lightboxImage.style.opacity = "0";
+  lightboxImage.style.opacity = "1";
   const requestId = setLightboxPhoto(photoButtons.indexOf(button));
   lightbox.classList.add("is-open");
   document.documentElement.classList.add("is-lightbox-open");
@@ -450,7 +387,7 @@ async function openLightbox(button) {
   // 那时背景遮罩还没暗下来,看起来像是闪了一下。
   lightbox.focus({ preventScroll: true });
   setLightboxBackgroundInert(true);
-  await animateLightboxFrom(sourceRect, requestId);
+  if (await waitForLightboxImage()) upgradeLightboxSource(requestId);
 }
 
 function finishLightboxClose() {
@@ -472,21 +409,7 @@ function finishLightboxClose() {
 function closeLightbox({ fromDrag = false } = {}) {
   if (!lightbox || !lightbox.classList.contains("is-open") || lightbox.classList.contains("is-closing")) return;
   clearLightboxAnimation();
-  lightbox.classList.add("is-closing");
-
-  if (reducedMotion()) {
-    finishLightboxClose();
-    return;
-  }
-
-  lightboxImage.style.transition = "transform 300ms cubic-bezier(0.4, 0, 1, 1), opacity 300ms ease-out";
-  lightboxImage.style.transform = fromDrag
-    ? `translate3d(0, ${Math.max(dragDistanceY + 140, window.innerHeight * 0.34)}px, 0) scale(0.82)`
-    : "translate3d(0, 18px, 0) scale(0.96)";
-  lightboxImage.style.opacity = "0";
-  lightboxBackdrop.style.transition = "opacity 300ms ease-out";
-  lightboxBackdrop.style.opacity = "0";
-  lightboxCloseTimer = window.setTimeout(finishLightboxClose, lightboxCloseDuration);
+  finishLightboxClose();
 }
 
 function changeLightboxPhoto(direction) {
@@ -508,18 +431,8 @@ function resetTouchTracking() {
 
 function reboundLightbox() {
   if (!lightbox?.classList.contains("is-open")) return;
-  lightboxImage.style.transition = "transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1)";
-  lightboxImage.style.transform = "translate3d(0, 0, 0) scale(1)";
-  lightboxBackdrop.style.transition = "opacity 260ms ease-out";
-  lightboxBackdrop.style.opacity = "1";
-  lightboxAnimationTimer = window.setTimeout(() => {
-    if (!lightbox.classList.contains("is-open")) return;
-    lightbox.classList.remove("is-dragging");
-    lightboxImage.style.removeProperty("transition");
-    lightboxImage.style.removeProperty("transform");
-    lightboxBackdrop.style.removeProperty("transition");
-    lightboxBackdrop.style.removeProperty("opacity");
-  }, 430);
+  lightbox.classList.remove("is-dragging");
+  clearLightboxInlineStyles();
 }
 
 if (menu && menuToggle) {
