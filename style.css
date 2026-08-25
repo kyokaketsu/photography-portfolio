@@ -612,6 +612,48 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   .lightbox-prev { left: 12px; } .lightbox-next { right: 12px; }
 }
 
+/* Field Notes uses a full-frame sequence: landscape photographs span the
+   complete content canvas, while portrait work remains uncropped. */
+.work-series-field .gallery.movements {
+  width: calc(100% + (var(--content-padding) * 2));
+  margin-left: calc(var(--content-padding) * -1);
+}
+.work-series-field .movement {
+  row-gap: clamp(88px, 13vh, 170px);
+}
+.work-series-field .movement .work-card {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 0 !important;
+}
+.work-series-field .movement .work-card img {
+  width: 100%;
+  max-height: none;
+}
+.work-series-field .movement figcaption {
+  margin: 12px var(--content-padding) 0;
+}
+
+@media (min-width: 769px) {
+  .work-series-field .movement .work-card img[width="1200"][height="1800"] {
+    width: auto;
+    max-width: 100%;
+    height: min(100svh, 1440px);
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .work-series-field .gallery.movements {
+    width: calc(100% + 40px);
+    margin-left: -20px;
+  }
+  .work-series-field .movement figcaption {
+    margin-right: 20px;
+    margin-left: 20px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal-item { opacity: 1; transform: none; filter: none; }
