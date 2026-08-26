@@ -624,6 +624,9 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   width: 100%;
   margin-top: 0 !important;
 }
+.work-series-field .movement .work-card.sequence-break {
+  padding-top: clamp(44px, 7vh, 88px);
+}
 .work-series-field .movement .work-card img {
   width: auto;
   max-width: 100%;
