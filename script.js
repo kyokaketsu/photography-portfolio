@@ -549,3 +549,56 @@ mobileMenuQuery.addEventListener?.("change", updateMobileHeaderState);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") recoverScrollablePage();
 });
+
+// Five evenly stepped word depths add subtle desktop motion without affecting touch devices.
+const kineticHero = document.querySelector(".hero-kinetic .hero");
+const kineticWords = Array.from(document.querySelectorAll(".kinetic-word"));
+const kineticPointerQuery = window.matchMedia("(pointer: fine) and (hover: hover)");
+
+let kineticTargetX = 0;
+let kineticTargetY = 0;
+let kineticCurrentX = 0;
+let kineticCurrentY = 0;
+let kineticFrame = null;
+
+function renderKineticTitle() {
+  const deltaX = kineticTargetX - kineticCurrentX;
+  const deltaY = kineticTargetY - kineticCurrentY;
+  kineticCurrentX += deltaX * 0.11;
+  kineticCurrentY += deltaY * 0.11;
+
+  kineticWords.forEach((word) => {
+    const depth = Number(word.dataset.depth || 0);
+    word.style.setProperty("--word-drift-x", `${(kineticCurrentX * 9 * depth).toFixed(2)}px`);
+    word.style.setProperty("--word-drift-y", `${(kineticCurrentY * 5 * depth).toFixed(2)}px`);
+  });
+
+  if (Math.abs(deltaX) > 0.002 || Math.abs(deltaY) > 0.002) {
+    kineticFrame = window.requestAnimationFrame(renderKineticTitle);
+    return;
+  }
+
+  kineticFrame = null;
+}
+
+function requestKineticTitleFrame() {
+  if (kineticFrame !== null) return;
+  kineticFrame = window.requestAnimationFrame(renderKineticTitle);
+}
+
+function resetKineticTitle() {
+  kineticTargetX = 0;
+  kineticTargetY = 0;
+  requestKineticTitleFrame();
+}
+
+if (kineticHero && kineticWords.length && kineticPointerQuery.matches && !reducedMotion()) {
+  kineticHero.addEventListener("pointermove", (event) => {
+    const rect = kineticHero.getBoundingClientRect();
+    kineticTargetX = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - 0.5) * 2));
+    kineticTargetY = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height - 0.5) * 2));
+    requestKineticTitleFrame();
+  }, { passive: true });
+  kineticHero.addEventListener("pointerleave", resetKineticTitle, { passive: true });
+  window.addEventListener("blur", resetKineticTitle);
+}

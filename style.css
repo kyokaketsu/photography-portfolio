@@ -670,3 +670,92 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   .hero-copy, .hero-cover { opacity: 1; transform: none; animation: none; }
   *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Kinetic title: the removed cover image becomes a quiet typographic field. */
+.hero-kinetic .hero {
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(104px, 13vh, 148px) var(--content-padding) clamp(28px, 4vh, 52px);
+}
+
+.hero-kinetic .hero-copy {
+  width: 100%;
+  min-height: clamp(270px, 34vh, 390px);
+  animation: none;
+}
+
+.hero-kinetic .hero-copy .eyebrow {
+  margin-bottom: clamp(26px, 4vh, 44px);
+}
+
+.hero-kinetic .kinetic-title {
+  position: relative;
+  width: 100%;
+  min-height: clamp(220px, 27vh, 310px);
+  font-size: clamp(2.2rem, 3.55vw, 3.85rem);
+  line-height: .98;
+}
+
+.hero-kinetic .kinetic-line {
+  position: absolute;
+  display: block;
+  margin: 0;
+}
+
+.hero-kinetic .kinetic-line-one {
+  top: 0;
+  left: 0;
+}
+
+.hero-kinetic .kinetic-line-two {
+  top: clamp(74px, 9vh, 108px);
+  left: clamp(250px, 31%, 520px);
+}
+
+.hero-kinetic .kinetic-line-three {
+  top: clamp(148px, 18vh, 214px);
+  right: clamp(12px, 6vw, 90px);
+  color: rgba(42, 38, 32, .9);
+}
+
+.hero-kinetic .kinetic-text {
+  display: flex;
+  align-items: baseline;
+  gap: .22em;
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  animation: kinetic-title-enter 620ms cubic-bezier(.16, 1, .3, 1) forwards;
+}
+
+.hero-kinetic .kinetic-word {
+  display: inline-block;
+  transform: translate3d(var(--word-drift-x, 0px), var(--word-drift-y, 0px), 0);
+  will-change: transform;
+}
+
+.hero-kinetic .kinetic-line-two .kinetic-text { animation-delay: 90ms; }
+.hero-kinetic .kinetic-line-three .kinetic-text { animation-delay: 180ms; }
+.hero-kinetic .kinetic-title em { font-style: italic; font-weight: 400; }
+.hero-kinetic .works-section { padding-top: clamp(34px, 5vh, 66px); }
+.hero-kinetic .works-section > .work-series:first-child .series-heading { margin-bottom: clamp(54px, 8vh, 88px); }
+
+@keyframes kinetic-title-enter {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (max-width: 768px), (max-width: 932px) and (max-height: 520px) and (pointer: coarse) {
+  .hero-kinetic .hero { min-height: 0; padding: 104px 20px 44px; }
+  .hero-kinetic .hero-copy { min-height: 264px; margin-bottom: 0; }
+  .hero-kinetic .hero-copy .eyebrow { margin-bottom: 28px; }
+  .hero-kinetic .kinetic-title { min-height: 220px; font-size: clamp(2.05rem, 10.4vw, 3.2rem); }
+  .hero-kinetic .kinetic-line-two { top: 76px; left: 12%; }
+  .hero-kinetic .kinetic-line-three { top: 154px; right: 3%; }
+  .hero-kinetic .works-section { padding-top: 38px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-kinetic .kinetic-word { transform: none !important; will-change: auto; }
+  .hero-kinetic .kinetic-text { opacity: 1; transform: none; animation: none; }
+}
