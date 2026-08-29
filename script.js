@@ -1,3 +1,34 @@
+function setupFieldPortraitSpread() {
+  const fm06 = document.querySelector('[data-title="FM–06"]')?.closest(".work-card");
+  const fm07 = document.querySelector('[data-title="FM–07"]')?.closest(".work-card");
+  const fm08 = document.querySelector('[data-title="FM–08"]')?.closest(".work-card");
+
+  if (!fm06 || !fm07 || !fm08 || fm06.closest(".portrait-spread")) return;
+
+  const fm07Button = fm07.querySelector(".photo-button");
+  const fm08Button = fm08.querySelector(".photo-button");
+  const fm07Caption = fm07.querySelector("figcaption span");
+  const fm08Caption = fm08.querySelector("figcaption span");
+  const spread = document.createElement("div");
+
+  spread.className = "portrait-spread";
+  fm06.before(spread);
+
+  fm06.classList.add("portrait-spread-vertical");
+  fm08.classList.remove("sequence-break");
+  fm08.classList.add("portrait-spread-landscape");
+  fm07.classList.add("sequence-break");
+
+  fm07Button.dataset.title = "FM–08";
+  fm08Button.dataset.title = "FM–07";
+  if (fm07Caption) fm07Caption.textContent = "FM–08";
+  if (fm08Caption) fm08Caption.textContent = "FM–07";
+
+  spread.append(fm06, fm08);
+}
+
+setupFieldPortraitSpread();
+
 const lightbox = document.querySelector("#lightbox");
 const lightboxImage = document.querySelector("#lightbox-image");
 const lightboxCaption = document.querySelector("#lightbox-caption");

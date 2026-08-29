@@ -664,6 +664,74 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   }
 }
 
+/* The lone portrait becomes a quiet spread with the distant horse landscape. */
+@media (min-width: 769px) {
+  .work-series-field .movement .portrait-spread {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(18px, 2.2vw, 38px);
+    align-items: start;
+    padding: clamp(44px, 7vh, 84px) 0 clamp(30px, 5vh, 64px);
+  }
+
+  .work-series-field .movement .portrait-spread .work-card {
+    width: 100%;
+    margin: 0 !important;
+    padding: 0;
+  }
+
+  .work-series-field .movement .portrait-spread-vertical {
+    grid-column: 2 / span 4;
+  }
+
+  .work-series-field .movement .portrait-spread-landscape {
+    grid-column: 6 / -1;
+    transform: translateY(clamp(118px, 16vh, 180px));
+  }
+
+  .work-series-field .portrait-spread .photo-button {
+    display: block;
+    height: auto;
+  }
+
+  .work-series-field .portrait-spread .work-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    object-fit: contain;
+  }
+
+  .work-series-field .portrait-spread figcaption {
+    margin: 12px 0 0;
+  }
+
+  .work-series-field .portrait-spread-landscape figcaption {
+    text-align: right;
+  }
+}
+
+@media (max-width: 768px) {
+  .work-series-field .movement .portrait-spread {
+    grid-column: 1 / -1;
+    display: grid;
+    row-gap: 100px;
+  }
+
+  .work-series-field .movement .portrait-spread .work-card {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  .work-series-field .portrait-spread .work-card img {
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal-item { opacity: 1; transform: none; filter: none; }
