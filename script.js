@@ -108,6 +108,94 @@ if (!reducedMotion() && galleryImages.length) {
   });
 }
 
+const photoCursorQuery = window.matchMedia("(pointer: fine) and (hover: hover)");
+
+if (photoButtons.length && photoCursorQuery.matches) {
+  const photoCursor = document.createElement("div");
+  let photoCursorTargetX = -100;
+  let photoCursorTargetY = -100;
+  let photoCursorCurrentX = -100;
+  let photoCursorCurrentY = -100;
+  let photoCursorTargetScale = .72;
+  let photoCursorCurrentScale = .72;
+  let photoCursorFrame = null;
+  let photoCursorVisible = false;
+
+  photoCursor.id = "photo-cursor";
+  photoCursor.setAttribute("aria-hidden", "true");
+  document.body.append(photoCursor);
+
+  function renderPhotoCursor() {
+    const positionEase = reducedMotion() ? 1 : .22;
+    const scaleEase = reducedMotion() ? 1 : .18;
+    const deltaX = photoCursorTargetX - photoCursorCurrentX;
+    const deltaY = photoCursorTargetY - photoCursorCurrentY;
+    const deltaScale = photoCursorTargetScale - photoCursorCurrentScale;
+
+    photoCursorCurrentX += deltaX * positionEase;
+    photoCursorCurrentY += deltaY * positionEase;
+    photoCursorCurrentScale += deltaScale * scaleEase;
+    photoCursor.style.transform = `translate3d(${photoCursorCurrentX}px, ${photoCursorCurrentY}px, 0) translate(-50%, -50%) scale(${photoCursorCurrentScale})`;
+
+    if (Math.abs(deltaX) > .05 || Math.abs(deltaY) > .05 || Math.abs(deltaScale) > .005) {
+      photoCursorFrame = window.requestAnimationFrame(renderPhotoCursor);
+      return;
+    }
+
+    photoCursorFrame = null;
+  }
+
+  function requestPhotoCursorFrame() {
+    if (photoCursorFrame !== null) return;
+    photoCursorFrame = window.requestAnimationFrame(renderPhotoCursor);
+  }
+
+  function showPhotoCursor(event) {
+    if (!photoCursorQuery.matches) return;
+    photoCursorTargetX = event.clientX;
+    photoCursorTargetY = event.clientY;
+    if (!photoCursorVisible) {
+      photoCursorCurrentX = event.clientX;
+      photoCursorCurrentY = event.clientY;
+    }
+    photoCursorVisible = true;
+    photoCursorTargetScale = 1;
+    photoCursor.classList.add("is-visible");
+    requestPhotoCursorFrame();
+  }
+
+  function hidePhotoCursor() {
+    photoCursorVisible = false;
+    photoCursorTargetScale = .72;
+    photoCursor.classList.remove("is-visible", "is-pressed");
+    requestPhotoCursorFrame();
+  }
+
+  document.addEventListener("pointermove", (event) => {
+    if (!photoCursorVisible) return;
+    photoCursorTargetX = event.clientX;
+    photoCursorTargetY = event.clientY;
+    requestPhotoCursorFrame();
+  }, { passive: true });
+
+  photoButtons.forEach((button) => {
+    button.addEventListener("pointerenter", showPhotoCursor, { passive: true });
+    button.addEventListener("pointerleave", hidePhotoCursor, { passive: true });
+    button.addEventListener("pointerdown", () => photoCursor.classList.add("is-pressed"), { passive: true });
+    button.addEventListener("pointerup", () => photoCursor.classList.remove("is-pressed"), { passive: true });
+    button.addEventListener("pointercancel", hidePhotoCursor, { passive: true });
+    button.addEventListener("click", hidePhotoCursor);
+  });
+
+  window.addEventListener("blur", hidePhotoCursor);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") hidePhotoCursor();
+  });
+  photoCursorQuery.addEventListener?.("change", (event) => {
+    if (!event.matches) hidePhotoCursor();
+  });
+}
+
 function updateMobileHeaderState() {
   headerScrollFrame = null;
   const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
