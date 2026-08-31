@@ -439,10 +439,10 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
     border-bottom: 0;
     border-right: 0;
   }
-  .site-sidebar::before { position: absolute; z-index: 0; inset: 0; border-bottom: 1px solid transparent; background: transparent; content: ""; pointer-events: none; transition: border-color 220ms ease; }
-  html.is-header-scrolled .site-sidebar::before { border-bottom-color: rgba(226, 219, 201, .42); }
+  .site-sidebar::before { position: absolute; z-index: 0; inset: 0; border-bottom: 1px solid transparent; background: transparent; content: ""; pointer-events: none; -webkit-backdrop-filter: none; backdrop-filter: none; transition: border-color 220ms ease, background-color 220ms ease; }
+  html.is-header-scrolled .site-sidebar::before { border-bottom-color: rgba(226, 219, 201, .42); background: rgba(244, 243, 238, .72); -webkit-backdrop-filter: blur(18px) saturate(125%); backdrop-filter: blur(18px) saturate(125%); }
   .site-sidebar.is-open::before,
-  .site-sidebar.is-closing::before { border-bottom-color: transparent; }
+  .site-sidebar.is-closing::before { border-bottom-color: transparent; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .menu-backdrop {
     position: fixed;
     z-index: 29;
@@ -451,22 +451,15 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
     right: 0;
     bottom: -180px;
     left: 0;
-    visibility: visible;
-    background: rgba(244, 243, 238, 0);
-    -webkit-backdrop-filter: blur(0) saturate(100%);
-    backdrop-filter: blur(0) saturate(100%);
-    -webkit-clip-path: inset(0 0 calc(100% - 68px - env(safe-area-inset-top)) 0);
-    clip-path: inset(0 0 calc(100% - 68px - env(safe-area-inset-top)) 0);
-    opacity: 1;
+    visibility: hidden;
+    background: rgba(244, 243, 238, .72);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    opacity: 0;
     pointer-events: none;
     touch-action: none;
     will-change: auto;
-    transition: -webkit-clip-path 520ms cubic-bezier(.76, 0, .24, 1), clip-path 520ms cubic-bezier(.76, 0, .24, 1), background-color 220ms ease, -webkit-backdrop-filter 220ms ease, backdrop-filter 220ms ease;
-  }
-  html.is-header-scrolled .menu-backdrop {
-    background: rgba(244, 243, 238, .72);
-    -webkit-backdrop-filter: blur(18px) saturate(125%);
-    backdrop-filter: blur(18px) saturate(125%);
+    transition: opacity 280ms ease;
   }
   .menu-toolbar-blend {
     position: fixed;
@@ -484,20 +477,15 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   }
   html.is-menu-open .menu-backdrop,
   html.is-menu-closing .menu-backdrop {
-    background: rgba(244, 243, 238, .72);
+    visibility: visible;
     -webkit-backdrop-filter: blur(18px) saturate(125%);
     backdrop-filter: blur(18px) saturate(125%);
-    pointer-events: auto;
-    will-change: clip-path;
+    will-change: opacity;
   }
-  html.is-menu-open .menu-backdrop { -webkit-clip-path: inset(0); clip-path: inset(0); }
+  html.is-menu-open .menu-backdrop { opacity: 1; pointer-events: auto; }
   html.is-menu-closing .menu-backdrop {
-    -webkit-clip-path: inset(0);
-    clip-path: inset(0);
     opacity: 0;
     pointer-events: none;
-    will-change: opacity;
-    transition: opacity 280ms ease;
   }
   html.is-menu-open .menu-toolbar-blend,
   html.is-menu-closing .menu-toolbar-blend { visibility: visible; }
