@@ -441,8 +441,8 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   }
   .site-sidebar::before { position: absolute; z-index: 0; inset: 0; border-bottom: 1px solid transparent; background: transparent; content: ""; pointer-events: none; -webkit-backdrop-filter: none; backdrop-filter: none; transition: border-color 220ms ease, background-color 220ms ease; }
   html.is-header-scrolled .site-sidebar::before { border-bottom-color: rgba(226, 219, 201, .42); background: rgba(244, 243, 238, .86); -webkit-backdrop-filter: blur(18px) saturate(125%); backdrop-filter: blur(18px) saturate(125%); }
-  .site-sidebar.is-open::before,
-  .site-sidebar.is-closing::before { border-bottom-color: transparent; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  html.is-menu-open .site-sidebar::before,
+  html.is-menu-closing .site-sidebar::before { border-bottom-color: transparent; background: rgba(210, 214, 212, .34); -webkit-backdrop-filter: blur(18px) saturate(125%); backdrop-filter: blur(18px) saturate(125%); }
   .menu-backdrop {
     position: fixed;
     z-index: 29;
