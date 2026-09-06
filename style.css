@@ -442,7 +442,7 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   .site-sidebar::before { position: absolute; z-index: 0; inset: 0; border-bottom: 1px solid transparent; background: transparent; content: ""; pointer-events: none; -webkit-backdrop-filter: none; backdrop-filter: none; transition: border-color 220ms ease, background-color 220ms ease; }
   html.is-header-scrolled .site-sidebar::before { border-bottom-color: rgba(226, 219, 201, .42); background: rgba(244, 243, 238, .86); -webkit-backdrop-filter: blur(18px) saturate(125%); backdrop-filter: blur(18px) saturate(125%); }
   html.is-menu-open .site-sidebar::before,
-  html.is-menu-closing .site-sidebar::before { border-bottom-color: transparent; background: rgba(210, 214, 212, .34); -webkit-backdrop-filter: blur(18px) saturate(125%); backdrop-filter: blur(18px) saturate(125%); }
+  html.is-menu-closing .site-sidebar::before { border-bottom-color: transparent; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; transition: none; }
   .menu-backdrop {
     position: fixed;
     z-index: 29;
@@ -546,9 +546,11 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   .site-sidebar.is-open .nav-work-group > a { transition-delay: 150ms; }
   .site-sidebar.is-open .nav-children a:nth-child(1) { transition-delay: 200ms; }
   .site-sidebar.is-open .nav-children a:nth-child(2) { transition-delay: 250ms; }
-  .site-sidebar.is-open .nav-primary-group a:nth-child(1) { transition-delay: 300ms; }
-  .site-sidebar.is-open .nav-primary-group a:nth-child(2) { transition-delay: 350ms; }
-  .site-sidebar.is-open .nav-instagram { transition-delay: 400ms; }
+  .site-sidebar.is-open .nav-children a:nth-child(3) { transition-delay: 300ms; }
+  .site-sidebar.is-open .nav-children a:nth-child(4) { transition-delay: 350ms; }
+  .site-sidebar.is-open .nav-primary-group a:nth-child(1) { transition-delay: 400ms; }
+  .site-sidebar.is-open .nav-primary-group a:nth-child(2) { transition-delay: 450ms; }
+  .site-sidebar.is-open .nav-instagram { transition-delay: 500ms; }
   .menu-panel .nav-work-group {
     display: block;
     width: min(218px, 100%);

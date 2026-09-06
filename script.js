@@ -200,6 +200,7 @@ function updateMobileHeaderState() {
   headerScrollFrame = null;
   const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
   document.documentElement.classList.toggle("is-header-scrolled", mobileMenuQuery.matches && scrollY > headerScrollThreshold);
+  updateSectionNavigation();
 }
 
 function requestMobileHeaderUpdate() {
@@ -311,6 +312,13 @@ function recoverScrollablePage() {
   }
 }
 
+function lightboxImageSizes(image) {
+  const width = Number(image.getAttribute("width")) || image.naturalWidth || 1;
+  const height = Number(image.getAttribute("height")) || image.naturalHeight || 1;
+  const availableWidth = mobileMenuQuery.matches ? window.innerWidth - 40 : Math.min(window.innerWidth * .86, 1400);
+  return `${Math.max(1, Math.floor(Math.min(availableWidth, (window.innerHeight * .86 - 34) * width / height)))}px`;
+}
+
 function preloadImages(index) {
   if (photoButtons.length < 2) return;
   const adjacentIndices = new Set([
@@ -324,7 +332,8 @@ function preloadImages(index) {
 
     const source = sourceImage.getAttribute("src") || sourceImage.src;
     const sourceSet = sourceImage.getAttribute("srcset") || "";
-    const cacheKey = `${source}|${sourceSet}`;
+    const sizes = lightboxImageSizes(sourceImage);
+    const cacheKey = `${source}|${sourceSet}|${sizes}|${window.devicePixelRatio}`;
     if (!source || preloadedImageSources.has(cacheKey)) return;
 
     const preload = new Image();
@@ -340,8 +349,8 @@ function preloadImages(index) {
     preload.addEventListener("load", releasePreload, { once: true });
     preload.addEventListener("error", releasePreload, { once: true });
     if (sourceSet) {
+      preload.sizes = sizes;
       preload.srcset = sourceSet;
-      preload.sizes = "100vw";
     }
     preload.src = source;
   });
@@ -374,7 +383,7 @@ function setLightboxPhoto(index) {
     // 缩略图自己都还没下载完,缓存里没有可复用的档,直接走完整响应式集合
     pendingLightboxSrcset = "";
     if (sourceSet) {
-      lightboxImage.sizes = "86vw";
+      lightboxImage.sizes = lightboxImageSizes(image);
       lightboxImage.srcset = sourceSet;
     } else {
       lightboxImage.removeAttribute("srcset");
@@ -393,7 +402,7 @@ function upgradeLightboxSource(requestId) {
   if (!pendingLightboxSrcset || !lightboxImage || requestId !== lightboxPhotoRequestId) return;
   const nextSrcset = pendingLightboxSrcset;
   pendingLightboxSrcset = "";
-  lightboxImage.sizes = "86vw";
+  lightboxImage.sizes = lightboxImageSizes(photoButtons[activePhotoIndex].querySelector("img"));
   lightboxImage.srcset = nextSrcset;
 }
 
@@ -551,7 +560,13 @@ function resetTouchTracking() {
 function reboundLightbox() {
   if (!lightbox?.classList.contains("is-open")) return;
   lightbox.classList.remove("is-dragging");
+  // Commit the dragged pose before transitioning back to the resting pose.
+  void lightboxImage.getBoundingClientRect();
   clearLightboxInlineStyles();
+  if (!reducedMotion()) {
+    lightboxImage.style.transition = "transform 320ms cubic-bezier(.2,.8,.2,1)";
+    lightboxBackdrop.style.transition = "opacity 320ms ease";
+  }
 }
 
 if (menu && menuToggle) {
@@ -649,20 +664,25 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeMenu();
 });
 
-const sectionLinks = navItems.filter((item) => ["#works", "#color", "#monochrome", "#about", "#contact"].includes(item.getAttribute("href")));
-const sections = sectionLinks.map((item) => document.querySelector(item.getAttribute("href"))).filter(Boolean);
-if ("IntersectionObserver" in window) {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      sectionLinks.forEach((link) => link.classList.toggle("is-current", link.getAttribute("href") === `#${entry.target.id}`));
-    });
-  }, { rootMargin: "-18% 0px -70% 0px", threshold: 0 });
-  sections.forEach((section) => observer.observe(section));
+function updateSectionNavigation() {
+  const candidates = navItems.filter((link) => link.getAttribute("href") !== "#top");
+  let current = candidates[0];
+  const line = Math.max(90, window.innerHeight * .25);
+  candidates.forEach((link) => {
+    const section = document.querySelector(link.getAttribute("href"));
+    if (section && section.getBoundingClientRect().top <= line) current = link;
+  });
+  candidates.forEach((link) => {
+    link.classList.toggle("is-current", link === current);
+    if (link === current) link.setAttribute("aria-current", "location");
+    else link.removeAttribute("aria-current");
+  });
 }
+updateSectionNavigation();
 
 window.addEventListener("pageshow", recoverScrollablePage);
 window.addEventListener("resize", recoverScrollablePage, { passive: true });
+window.addEventListener("resize", requestMobileHeaderUpdate, { passive: true });
 window.addEventListener("scroll", requestMobileHeaderUpdate, { passive: true });
 mobileMenuQuery.addEventListener?.("change", updateMobileHeaderState);
 document.addEventListener("visibilitychange", () => {
