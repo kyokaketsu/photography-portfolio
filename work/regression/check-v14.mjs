@@ -173,10 +173,10 @@ console.log('\n=== A. 菜单关闭态 ===');
 await evaljs('window.scrollTo(0,0)');
 await sleep(400);
 const A = await evaljs(SNAPSHOT);
-check('A1 关闭态全屏背景隐藏', A.bd.vis === 'hidden', A.bd.vis);
-check('A2 关闭态全屏滤镜卸载', A.bd.bf === 'none', A.bd.bf);
+check('A1 关闭态全屏背景隐藏且不拦截', A.bd.vis === 'hidden' && A.bd.pe === 'none', `${A.bd.vis}/${A.bd.pe}`);
+check('A2 关闭态保留毛玻璃定义供预热', A.bd.bf.includes('blur(18px)'), A.bd.bf);
 check('A3 关闭态 backdrop pointer-events=none', A.bd.pe === 'none', A.bd.pe);
-check('A4 关闭态 backdrop will-change=auto', A.bd.wc === 'auto', A.bd.wc);
+check('A4 关闭态 backdrop 保持 opacity 合成提示', A.bd.wc === 'opacity', A.bd.wc);
 check('A5 关闭态 menu-panel 隐藏且不接收事件', A.panel.vis === 'hidden' && A.panel.pe === 'none', `${A.panel.vis}/${A.panel.pe}`);
 check('A6 关闭态 toolbar-blend 隐藏', A.blend.vis === 'hidden' && A.blend.op === '0', `${A.blend.vis}/${A.blend.op}`);
 check('A7 关闭态无滚动锁/菜单类', !/is-(menu-open|menu-closing|scroll-locked)/.test(A.htmlClass) && A.bodyPos === '(none)', `${A.htmlClass} / body=${A.bodyPos}`);
@@ -189,6 +189,13 @@ console.log('\n=== B. 滚动到中段 -> 打开菜单 ===');
 await evaljs('window.scrollTo(0,600)');
 await sleep(400);
 const scrollBefore = await evaljs('Math.round(window.scrollY)');
+await evaljs(`document.querySelector('.menu-toggle').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch' }))`);
+const preparing = await evaljs(`(() => ({
+  htmlClass: document.documentElement.className,
+  backdropOpacity: getComputedStyle(document.querySelector('.menu-backdrop')).opacity,
+  backdropFilter: getComputedStyle(document.querySelector('.menu-backdrop')).backdropFilter,
+}))()`);
+check('B0 打开前先预热透明毛玻璃层', preparing.htmlClass.includes('is-menu-preparing') && preparing.backdropOpacity === '0' && preparing.backdropFilter.includes('blur(18px)'), JSON.stringify(preparing));
 await evaljs(`document.querySelector('.menu-toggle').click()`);
 await sleep(200);
 await shot('B-opening-mid.png');
@@ -196,8 +203,8 @@ await sleep(700); // 超过 520ms 动画
 const B = await evaljs(SNAPSHOT);
 check('B1 html 带 is-menu-open', B.htmlClass.includes('is-menu-open'), B.htmlClass);
 check('B2 全屏背景不使用裁剪', B.bd.clip === 'none' && B.bd.vis === 'visible', B.bd.clip);
-const headerGlass = await evaljs(`getComputedStyle(document.querySelector('.site-sidebar'), '::before').backdropFilter`);
-check('B13 顶栏不叠加第二层滤镜', headerGlass === 'none', headerGlass);
+const headerGlass = await evaljs(`(() => { const s = getComputedStyle(document.querySelector('.site-sidebar'), '::before'); return { filter: s.backdropFilter, opacity: s.opacity }; })()`);
+check('B13 顶栏滤镜层保持合成但完全透明', headerGlass.filter.includes('blur(18px)') && headerGlass.opacity === '0', JSON.stringify(headerGlass));
 const delays = await evaljs(`Array.from(document.querySelectorAll('.nav-children a'), a => parseFloat(getComputedStyle(a).transitionDelay))`);
 check('B14 四个子项按顺序进入', delays.length === 4 && delays.every((d,i) => !i || d > delays[i-1]), delays);
 check('B3 backdrop 向下超额延伸(bottom≈1024=844+180)', near(B.bd.rect.bottom, 1024, 3), `bottom=${B.bd.rect.bottom}`);
@@ -225,7 +232,7 @@ await sleep(750); // 总计 900ms > 520ms
 const C2 = await evaljs(SNAPSHOT);
 check('C3 关闭完成: 状态类全部清除', !/is-(menu-open|menu-closing|scroll-locked)/.test(C2.htmlClass), C2.htmlClass);
 check('C4 关闭完成: panel 隐藏且不拦截', C2.panel.vis === 'hidden' && C2.panel.pe === 'none', `${C2.panel.vis}/${C2.panel.pe}`);
-check('C5 关闭完成: 全屏背景隐藏且滤镜卸载', C2.bd.vis === 'hidden' && C2.bd.bf === 'none' && C2.bd.wc === 'auto', JSON.stringify(C2.bd));
+check('C5 关闭完成: 全屏背景隐藏但保留滤镜定义', C2.bd.vis === 'hidden' && C2.bd.pe === 'none' && C2.bd.bf.includes('blur(18px)') && C2.bd.wc === 'opacity', JSON.stringify(C2.bd));
 check('C6 关闭完成: toolbar-blend 重新隐藏', C2.blend.vis === 'hidden' && C2.blend.op === '0', `${C2.blend.vis}/${C2.blend.op}`);
 check('C7 滚动锁已解除(body 行内样式清空)', C2.bodyPos === '(none)' && C2.bodyTop === '(none)', `pos=${C2.bodyPos} top=${C2.bodyTop}`);
 check('C8 滚动位置恢复到打开前', near(C2.scrollY, scrollBefore, 3), `${C2.scrollY} vs ${scrollBefore}`);
@@ -242,7 +249,7 @@ await sleep(850);
 await evaljs(`setMenuOpen(false)`);
 await sleep(500);
 const repeat = await evaljs(SNAPSHOT);
-check('C11 第二次开合后正常卸载', repeat.bd.vis === 'hidden' && repeat.bd.bf === 'none' && near(repeat.scrollY, 1200), repeat.htmlClass);
+check('C11 第二次开合后正常隐藏', repeat.bd.vis === 'hidden' && repeat.bd.pe === 'none' && repeat.bd.bf.includes('blur(18px)') && near(repeat.scrollY, 1200), repeat.htmlClass);
 await evaljs(`setMenuOpen(true); setMenuOpen(false); setMenuOpen(true)`);
 await sleep(850);
 check('C12 快速重开不被旧计时器关闭', await evaljs(`document.documentElement.classList.contains('is-menu-open')`));

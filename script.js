@@ -62,6 +62,8 @@ let lightboxSettleTimer = null;
 let lightboxUpgradeTimer = null;
 let pendingLightboxSrcset = "";
 let menuCloseTimer = null;
+let menuOpenFrame = null;
+let menuOpenCommitFrame = null;
 let headerScrollFrame = null;
 let lightboxPhotoRequestId = 0;
 let cancelLightboxImageWait = null;
@@ -208,17 +210,49 @@ function requestMobileHeaderUpdate() {
   headerScrollFrame = window.requestAnimationFrame(updateMobileHeaderState);
 }
 
+function cancelPreparedMenuOpen() {
+  if (menuOpenFrame !== null) window.cancelAnimationFrame(menuOpenFrame);
+  if (menuOpenCommitFrame !== null) window.cancelAnimationFrame(menuOpenCommitFrame);
+  menuOpenFrame = null;
+  menuOpenCommitFrame = null;
+  document.documentElement.classList.remove("is-menu-preparing");
+}
+
+function prepareMenuGlass() {
+  if (!mobileMenuQuery.matches || menu?.classList.contains("is-open")) return;
+  document.documentElement.classList.add("is-menu-preparing");
+}
+
+function openMenu() {
+  if (!mobileMenuQuery.matches || reducedMotion()) {
+    setMenuOpen(true);
+    return;
+  }
+
+  prepareMenuGlass();
+  if (menuOpenFrame !== null || menuOpenCommitFrame !== null) return;
+  menuOpenFrame = window.requestAnimationFrame(() => {
+    menuOpenFrame = null;
+    menuOpenCommitFrame = window.requestAnimationFrame(() => {
+      menuOpenCommitFrame = null;
+      setMenuOpen(true);
+    });
+  });
+}
+
 function setMenuOpen(isOpen) {
   if (!menu || !menuToggle || !menuPanel) return;
   const wasOpen = menu.classList.contains("is-open");
   const isMobile = mobileMenuQuery.matches;
   const shouldAnimateClosing = isMobile && !isOpen && wasOpen && !reducedMotion();
 
+  if (!isOpen) cancelPreparedMenuOpen();
   window.clearTimeout(menuCloseTimer);
   menu.classList.toggle("is-open", isOpen);
   menu.classList.toggle("is-closing", shouldAnimateClosing);
   document.documentElement.classList.toggle("is-menu-open", isOpen);
   document.documentElement.classList.toggle("is-menu-closing", shouldAnimateClosing);
+  if (isOpen) document.documentElement.classList.remove("is-menu-preparing");
   menuToggle.setAttribute("aria-expanded", String(isOpen));
   menuToggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
   menuPanel.setAttribute("aria-hidden", String(!isOpen));
@@ -570,7 +604,11 @@ function reboundLightbox() {
 }
 
 if (menu && menuToggle) {
-  menuToggle.addEventListener("click", () => setMenuOpen(!menu.classList.contains("is-open")));
+  menuToggle.addEventListener("pointerdown", prepareMenuGlass, { passive: true });
+  menuToggle.addEventListener("click", () => {
+    if (menu.classList.contains("is-open")) closeMenu();
+    else openMenu();
+  });
 }
 
 navItems.forEach((item) => {
