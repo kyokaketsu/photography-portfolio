@@ -12,7 +12,6 @@ const menu = document.querySelector("[data-menu]");
 const menuToggle = document.querySelector(".menu-toggle");
 const menuPanel = document.querySelector("#primary-navigation");
 const navItems = Array.from(document.querySelectorAll(".menu-panel a[href^='#']"));
-const viewButtons = Array.from(document.querySelectorAll("[data-view-choice]"));
 const revealItems = Array.from(document.querySelectorAll(".reveal-item"));
 const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const mobileMenuQuery = window.matchMedia("(max-width: 768px), (max-width: 932px) and (max-height: 520px) and (pointer: coarse)");
@@ -37,67 +36,11 @@ let menuOpenCommitFrame = null;
 let headerScrollFrame = null;
 let lightboxPhotoRequestId = 0;
 let cancelLightboxImageWait = null;
-let currentPhotoView = new URLSearchParams(window.location.search).get("view") === "index" ? "index" : "sequence";
 const preloadedImageSources = new Set();
 const activeImagePreloads = new Map();
 const menuCurtainDuration = 300;
 const headerScrollThreshold = 18;
 const lightboxDismissThreshold = 100;
-
-function setPhotoView(view) {
-  const nextView = view === "index" ? "index" : "sequence";
-  const root = document.documentElement;
-  const visibleSeries = Array.from(document.querySelectorAll(".work-series")).find((series) => {
-    const rect = series.getBoundingClientRect();
-    return rect.bottom > 0 && rect.top < window.innerHeight;
-  });
-  const anchorTop = visibleSeries?.getBoundingClientRect().top ?? null;
-  const previousScrollBehavior = root.style.scrollBehavior;
-  const previousRootAnchor = root.style.overflowAnchor;
-  const previousBodyAnchor = document.body.style.overflowAnchor;
-
-  currentPhotoView = nextView;
-  root.style.scrollBehavior = "auto";
-  root.style.overflowAnchor = "none";
-  document.body.style.overflowAnchor = "none";
-  document.documentElement.classList.toggle("is-index", nextView === "index");
-  viewButtons.forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.viewChoice === nextView));
-  });
-
-  window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-    if (visibleSeries && anchorTop !== null) {
-      window.scrollBy(0, visibleSeries.getBoundingClientRect().top - anchorTop);
-    }
-    window.requestAnimationFrame(() => {
-      if (visibleSeries && anchorTop !== null) {
-        const correction = visibleSeries.getBoundingClientRect().top - anchorTop;
-        if (Math.abs(correction) > 1) window.scrollBy(0, correction);
-      }
-      if (previousScrollBehavior) root.style.scrollBehavior = previousScrollBehavior;
-      else root.style.removeProperty("scroll-behavior");
-      if (previousRootAnchor) root.style.overflowAnchor = previousRootAnchor;
-      else root.style.removeProperty("overflow-anchor");
-      if (previousBodyAnchor) document.body.style.overflowAnchor = previousBodyAnchor;
-      else document.body.style.removeProperty("overflow-anchor");
-    });
-  }));
-
-  if (mobileMenuQuery.matches && menu?.classList.contains("is-open")) {
-    closeMenu();
-    menuToggle?.focus({ preventScroll: true });
-  }
-}
-
-viewButtons.forEach((button) => {
-  button.addEventListener("click", () => setPhotoView(button.dataset.viewChoice));
-});
-if (currentPhotoView === "index") {
-  document.documentElement.classList.add("is-index");
-  viewButtons.forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.viewChoice === "index"));
-  });
-}
 
 function reducedMotion() {
   return motionQuery.matches;
