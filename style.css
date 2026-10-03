@@ -974,3 +974,28 @@ html.is-index #field-monochrome .movement > .work-card:nth-child(n) {
     row-gap: 32px;
   }
 }
+
+/* Mobile Field galleries: large photographs with selected adjacent pairs. */
+@media (max-width: 768px) {
+  html.is-index .work-series-field .gallery.movements {
+    width: calc(100% + 8px);
+    margin-left: -4px;
+  }
+  html.is-index .work-series-field .movement {
+    column-gap: 12px;
+    row-gap: 26px;
+  }
+  html.is-index #field-color .movement > .work-card:nth-child(n),
+  html.is-index #field-monochrome .movement > .work-card:nth-child(n) {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+  html.is-index #field-color .movement > .work-card:has(.photo-button[data-title="FC–02"]),
+  html.is-index #field-color .movement > .work-card:has(.photo-button[data-title="FC–03"]),
+  html.is-index #field-color .movement > .work-card:has(.photo-button[data-title="FC–07"]),
+  html.is-index #field-color .movement > .work-card:has(.photo-button[data-title="FC–09"]),
+  html.is-index #field-monochrome .movement > .work-card:has(.photo-button[data-title="FM–10"]),
+  html.is-index #field-monochrome .movement > .work-card:has(.photo-button[data-title="FM–11"]) {
+    grid-column: auto !important;
+  }
+}
