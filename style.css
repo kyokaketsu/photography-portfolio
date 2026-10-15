@@ -404,9 +404,12 @@ html.js-image-fade .photo-button img.is-loaded { opacity: 1; }
   }
   .site-sidebar::before { position: absolute; z-index: 0; inset: 0; border-bottom: 1px solid transparent; background: rgba(244, 243, 238, .86); content: ""; opacity: 0; pointer-events: none; -webkit-backdrop-filter: blur(18px) saturate(125%); backdrop-filter: blur(18px) saturate(125%); transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden; will-change: opacity; transition: opacity 220ms ease, border-color 220ms ease; }
   html.is-header-scrolled .site-sidebar::before { border-bottom-color: rgba(226, 219, 201, .42); opacity: 1; }
+  /* 菜单开合期间顶部栏的毛玻璃要一直有东西接住：打开时等菜单遮罩基本铺满再淡出，关闭时立刻恢复，避免背后照片清晰透出 */
   html.is-menu-preparing .site-sidebar::before,
   html.is-menu-open .site-sidebar::before,
-  html.is-menu-closing .site-sidebar::before { border-bottom-color: transparent; opacity: 0; }
+  html.is-menu-closing .site-sidebar::before { border-bottom-color: transparent; }
+  html.is-menu-open .site-sidebar::before { opacity: 0; transition-delay: 320ms, 0s; }
+  html.is-menu-closing .site-sidebar::before { transition: none; }
   .menu-backdrop {
     position: fixed;
     z-index: 29;
