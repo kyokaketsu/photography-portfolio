@@ -25,9 +25,6 @@ let touchStartX = null;
 let touchStartY = null;
 let touchGesture = null;
 let dragDistanceY = 0;
-let lightboxAnimationFrame = null;
-let lightboxAnimationTimer = null;
-let lightboxSettleTimer = null;
 let lightboxUpgradeTimer = null;
 let pendingLightboxSrcset = "";
 let menuCloseTimer = null;
@@ -453,26 +450,14 @@ function trapLightboxFocus(event) {
   }
 }
 
-function clearLightboxAnimation() {
-  if (lightboxAnimationFrame !== null) {
-    window.cancelAnimationFrame(lightboxAnimationFrame);
-    lightboxAnimationFrame = null;
-  }
-  window.clearTimeout(lightboxAnimationTimer);
-  lightboxAnimationTimer = null;
-  window.clearTimeout(lightboxSettleTimer);
-  lightboxSettleTimer = null;
-}
-
 function clearLightboxInlineStyles() {
-  clearLightboxAnimation();
   lightboxImage?.style.removeProperty("transition");
   lightboxImage?.style.removeProperty("transform");
   lightboxImage?.style.removeProperty("transform-origin");
   lightboxImage?.style.removeProperty("opacity");
   lightboxBackdrop?.style.removeProperty("transition");
   lightboxBackdrop?.style.removeProperty("opacity");
-  lightbox?.classList.remove("is-dragging", "is-closing");
+  lightbox?.classList.remove("is-dragging");
 }
 
 function waitForLightboxImage() {
@@ -524,7 +509,7 @@ async function openLightbox(button) {
 
 function finishLightboxClose() {
   if (!lightbox) return;
-  lightbox.classList.remove("is-open", "is-closing", "is-dragging");
+  lightbox.classList.remove("is-open", "is-dragging");
   document.documentElement.classList.remove("is-lightbox-open");
   lightbox.setAttribute("aria-hidden", "true");
   const restoreY = unlockPageScroll("lightbox");
@@ -538,14 +523,13 @@ function finishLightboxClose() {
   lastFocusedElement = null;
 }
 
-function closeLightbox({ fromDrag = false } = {}) {
-  if (!lightbox || !lightbox.classList.contains("is-open") || lightbox.classList.contains("is-closing")) return;
-  clearLightboxAnimation();
+function closeLightbox() {
+  if (!lightbox || !lightbox.classList.contains("is-open")) return;
   finishLightboxClose();
 }
 
 function changeLightboxPhoto(direction) {
-  if (!lightbox?.classList.contains("is-open") || lightbox.classList.contains("is-closing")) return;
+  if (!lightbox?.classList.contains("is-open")) return;
   clearLightboxInlineStyles();
   const requestId = setLightboxPhoto(activePhotoIndex + direction);
   // 翻页没有 FLIP 动画,缓存档先显示,稍后再静默换成高清档
@@ -607,7 +591,6 @@ lightbox?.addEventListener("click", (event) => {
 
 lightboxContent?.addEventListener("touchstart", (event) => {
   if (event.touches.length !== 1 || !lightbox?.classList.contains("is-open")) return;
-  clearLightboxAnimation();
   touchStartX = event.touches[0].clientX;
   touchStartY = event.touches[0].clientY;
   touchGesture = null;
@@ -645,7 +628,7 @@ lightboxContent?.addEventListener("touchend", (event) => {
   resetTouchTracking();
 
   if (completedGesture === "dismiss") {
-    if (dragDistanceY > lightboxDismissThreshold) closeLightbox({ fromDrag: true });
+    if (dragDistanceY > lightboxDismissThreshold) closeLightbox();
     else reboundLightbox();
     return;
   }
