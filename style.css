@@ -726,7 +726,7 @@ html.is-index .series-heading { margin-bottom: clamp(34px, 5vh, 54px); }
   }
   html.is-index .work-series .movement > .work-card { margin-bottom: 0 !important; }
   html.is-index .work-series .movement > .movement-label { margin-bottom: 0; }
-  html.is-index .work-series .movement figcaption { margin-top: 7px; font-size: 8px; }
+  html.is-index .work-series .movement figcaption { margin-top: 5px; font-size: 10px; font-weight: 300; }
 }
 
 /* Aggressive preview: the portfolio opens on the first photograph, not a title field. */
@@ -868,4 +868,22 @@ html.is-index #field-monochrome .movement > .work-card:nth-child(n) {
   html.is-index #field-monochrome .movement > .work-card:has(.photo-button[data-title="FM–11"]) {
     grid-column: auto !important;
   }
+}
+
+/* 手机：编号略缩小，照片间距收紧，左右边距让给照片 */
+@media (max-width: 768px) {
+  html.is-index .work-series-field .gallery.movements {
+    width: calc(100% + 40px);
+    margin-left: -20px;
+  }
+  html.is-index .work-series-field .movement {
+    column-gap: 8px;
+    row-gap: 14px;
+  }
+  html.is-index .work-series .movement {
+    column-gap: 10px;
+    row-gap: 12px;
+  }
+  /* 照片贴边后，编号仍离屏幕边缘留一点距离 */
+  html.is-index .work-series .movement figcaption { padding-inline: 10px; }
 }
