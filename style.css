@@ -886,4 +886,6 @@ html.is-index #field-monochrome .movement > .work-card:nth-child(n) {
   }
   /* 照片贴边后，编号仍离屏幕边缘留一点距离 */
   html.is-index .work-series .movement figcaption { padding-inline: 10px; }
+  /* 小节标签（I / City 等）不贴屏幕边缘，与页眉、分区标题同在 20px */
+  html.is-index .work-series .movement > .movement-label { margin-left: 20px; margin-right: 20px; }
 }
