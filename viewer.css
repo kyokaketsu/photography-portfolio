@@ -1,0 +1,140 @@
+/* 桌面端单张浏览（参考 Mitch Epstein）。只在 769px 以上生效，手机端不变。 */
+.viewer, .viewer-links { display: none; }
+@media (min-width: 769px) {
+  html.is-viewer {
+    --paper: #ffffff;
+    --ink: #111111;
+    --muted: #8a8a8a;
+    --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-brand: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-meta: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --viewer-top: 64px;
+    --viewer-bottom: 64px;
+    --viewer-right: 48px;
+  }
+  html.is-viewer, html.is-viewer body { background: #fff; overflow: hidden; }
+
+  /* 原来的开场、系列网格、About、Contact 全部收起 */
+  html.is-viewer .photo-first-opening,
+  html.is-viewer .works-section,
+  html.is-viewer #about,
+  html.is-viewer #contact,
+  html.is-viewer .sidebar-meta { display: none !important; }
+
+  /* 左侧纯文字目录 */
+  html.is-viewer .site-sidebar { padding-top: var(--viewer-top); }
+  html.is-viewer .brand { font-size: 15px; font-weight: 400; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); }
+  html.is-viewer .menu-panel { margin-top: 44px; }
+  html.is-viewer .nav-work-group > a[href="#works"],
+  html.is-viewer .nav-primary-group,
+  html.is-viewer .nav-instagram,
+  html.is-viewer .menu-meta { display: none !important; }
+  html.is-viewer .menu-panel a,
+  html.is-viewer .menu-panel .nav-sub { margin: 0; padding: 0; color: var(--ink); font-family: var(--font-body); font-size: 15px; font-weight: 400; letter-spacing: 0; line-height: 1.9; text-transform: none; opacity: 1; }
+  html.is-viewer .menu-panel a::before { display: none !important; }
+  html.is-viewer .menu-panel a:hover { color: var(--muted); }
+  html.is-viewer .menu-panel a.is-current { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+
+  html.is-viewer .viewer-links { display: flex; gap: 16px; margin-top: 36px; }
+  html.is-viewer .viewer-links a { display: block; width: 18px; height: 18px; color: var(--ink); line-height: 0; }
+  html.is-viewer .viewer-links a:hover { color: var(--muted); }
+  html.is-viewer .viewer-links svg { width: 18px; height: 18px; }
+
+  /* 右侧单张照片：一律靠左，保持原比例，最高一屏 */
+
+  html.is-viewer .viewer { display: block; height: 100svh; padding: var(--viewer-top) var(--viewer-right) 0 0; box-sizing: border-box; }
+  html.is-viewer .viewer-figure { margin: 0; display: inline-block; max-width: 100%; }
+  html.is-viewer .viewer-stage { display: block; position: relative; line-height: 0; user-select: none; -webkit-user-select: none; }
+  html.is-viewer .viewer-image {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - var(--sidebar-width) - var(--viewer-right));
+    max-height: calc(100svh - var(--viewer-top) - var(--viewer-bottom) - 28px);
+  }
+  html.is-viewer .viewer-caption { display: flex; gap: 18px; margin-top: 12px; color: var(--muted); font-family: var(--font-meta); font-size: 12px; letter-spacing: .02em; line-height: 16px; }
+
+  /* 提示：左半边「←」、右半边「→」，到头时恢复普通指针 */
+  html.is-viewer .viewer-stage.is-prev { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M22 16H10m5-5-5 5 5 5' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M22 16H10m5-5-5 5 5 5' fill='none' stroke='%23111' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 16 16, w-resize; }
+  html.is-viewer .viewer-stage.is-next { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M10 16h12m-5-5 5 5-5 5' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M10 16h12m-5-5 5 5-5 5' fill='none' stroke='%23111' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 16 16, e-resize; }
+  html.is-viewer .viewer-stage.is-end { cursor: default; }
+}
+
+/* 第二轮：去掉侧栏竖线、目录不折行、照片与目录之间留出距离 */
+@media (min-width: 769px) {
+  html.is-viewer { --sidebar-width: clamp(210px, 15vw, 260px); --viewer-gap: 56px; }
+  html.is-viewer .site-sidebar { border-right: 0; }
+  html.is-viewer .menu-panel { gap: 2px; }
+  html.is-viewer .menu-panel a { white-space: nowrap; }
+  html.is-viewer .viewer { padding-left: var(--viewer-gap); }
+  html.is-viewer .viewer-image { max-width: calc(100vw - var(--sidebar-width) - var(--viewer-gap) - var(--viewer-right)); }
+}
+@media (min-width: 769px) { html.is-viewer .menu-panel a:focus:not(:focus-visible) { outline: none; } }
+
+@media (min-width: 769px) {
+  html.is-viewer {
+    --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-brand: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-meta: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --muted: #767676;
+  }
+  html.is-viewer body { -webkit-font-smoothing: antialiased; }
+}
+
+/* 第四轮：照片上下撑满一屏；右侧不留边；编号和页码移到左侧栏底部 */
+@media (min-width: 769px) {
+  html.is-viewer { --viewer-top: 0px; --viewer-bottom: 0px; --viewer-right: 0px; --viewer-gap: 40px; }
+  html.is-viewer .viewer { padding: 0 0 0 var(--viewer-gap); }
+  html.is-viewer .viewer-image {
+    max-width: calc(100vw - var(--sidebar-width) - var(--viewer-gap));
+    max-height: 100svh;
+  }
+  html.is-viewer .viewer-caption {
+    position: fixed;
+    left: clamp(24px, 2.4vw, 42px);
+    bottom: 32px;
+    margin: 0;
+    flex-direction: column;
+    gap: 2px;
+  }
+  html.is-viewer .site-sidebar { padding-top: 56px; }
+}
+@media (min-width: 769px) { html.is-viewer .viewer-figure { display: block; } html.is-viewer .viewer-image { max-width: 100%; } }
+
+/* 留边装裱：照片顶边对齐站名字顶；下方只留窄边，右侧留白为照片左侧距离的 0.6 倍。 */
+@media (min-width: 769px) {
+  html.is-viewer {
+    --frame: 58px; /* 站名大写字母顶端距窗口顶（Arial 13px 时） */
+    --frame-bottom: 32px; /* 与原版页码离底距离相同 */
+    --frame-right: calc((var(--sidebar-width) + var(--viewer-gap)) * 0.6);
+  }
+  html.is-viewer .viewer { padding: var(--frame) 0 var(--frame-bottom) var(--viewer-gap); }
+  html.is-viewer .viewer-image {
+    max-width: calc(100vw - var(--sidebar-width) - var(--viewer-gap) - var(--frame-right));
+    max-height: calc(100svh - var(--frame) - var(--frame-bottom));
+  }
+  html.is-viewer .viewer-caption { bottom: var(--frame-bottom); }
+}
+
+/* 字体：与 Mitch Epstein 相同的 "Helvetica Neue", Arial（Windows 上即 Arial），13px 全大写 */
+@media (min-width: 769px) {
+  html.is-viewer .brand,
+  html.is-viewer .menu-panel a,
+  html.is-viewer .menu-panel .nav-sub,
+  html.is-viewer .viewer-caption {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    -webkit-font-smoothing: auto;
+  }
+  html.is-viewer .brand,
+  html.is-viewer .menu-panel a,
+  html.is-viewer .menu-panel .nav-sub { color: #1f1f1f; }
+}
+/* 目录行距放宽：行间距约 34px，接近 Epstein */
+@media (min-width: 769px) {
+  html.is-viewer .menu-panel .nav-sub { line-height: 2.5; }
+}
