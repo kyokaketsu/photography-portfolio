@@ -1,6 +1,5 @@
-// 桌面端单张浏览。只在 769px 以上启用，手机端完全沿用原页面。
+// 单张浏览：桌面和手机都是一次一张，点照片左半边上一张、右半边下一张。
 (() => {
-  const desktop = window.matchMedia("(min-width: 769px)");
   const seriesIds = ["field-color", "field-monochrome", "color", "monochrome"];
   const root = document.documentElement;
   const main = document.querySelector("main");
@@ -29,12 +28,20 @@
   const viewer = document.createElement("section");
   viewer.className = "viewer";
   viewer.setAttribute("aria-label", "Photograph viewer");
-  viewer.innerHTML = `<figure class="viewer-figure"><div class="viewer-stage"><img class="viewer-image" alt="" decoding="async" /></div><figcaption class="viewer-caption"><span class="viewer-title"></span><span class="viewer-count"></span></figcaption></figure>`;
+  viewer.innerHTML = `<figure class="viewer-figure"><div class="viewer-stage"><img class="viewer-image" alt="" decoding="async" /></div><figcaption class="viewer-caption"><span class="viewer-title"></span><span class="viewer-count"></span></figcaption><div class="viewer-note"><p class="viewer-note-title"></p><p class="viewer-note-text"></p></div></figure>`;
   main.prepend(viewer);
   const stage = viewer.querySelector(".viewer-stage");
   const image = viewer.querySelector(".viewer-image");
   const titleEl = viewer.querySelector(".viewer-title");
   const countEl = viewer.querySelector(".viewer-count");
+  const noteTitle = viewer.querySelector(".viewer-note-title");
+  const noteText = viewer.querySelector(".viewer-note-text");
+  // 开场文字：取原 About 的标题和第一段，只放在打开网站时的第一张（Field / Color 第 1 张）下面
+  const about = document.querySelector("#about");
+  const openingText = {
+    title: about?.querySelector("h2")?.textContent || "",
+    text: about?.querySelector(".text-block p")?.textContent.trim() || "",
+  };
 
   // 侧栏底部：邮箱与 Instagram 图标
   const links = document.createElement("div");
@@ -58,6 +65,11 @@
     image.alt = item.alt;
     titleEl.textContent = item.title;
     countEl.textContent = `${index + 1} / ${list.length}`;
+    // 开场文字只在 Field / Color 第 1 张出现（手机端显示，桌面端隐藏）
+    const isOpening = current === "field-color" && index === 0;
+    noteTitle.textContent = isOpening ? openingText.title : "";
+    noteText.textContent = isOpening ? openingText.text : "";
+    viewer.classList.toggle("has-note", isOpening);
     for (const a of nav.querySelectorAll(".nav-sub")) a.classList.toggle("is-current", a.getAttribute("href") === `#${current}`);
     preload(list[index + 1]);
     preload(list[index - 1]);
@@ -106,6 +118,8 @@
     e.stopImmediatePropagation();
     openSeries(id);
     a.blur(); // 之后按方向键时不显示目录上的焦点框
+    // 手机菜单开着时，选完系列顺手关上
+    if (document.querySelector(".site-sidebar")?.classList.contains("is-open")) document.querySelector(".menu-toggle")?.click();
   }, true);
 
   document.addEventListener("keydown", (e) => {
@@ -114,14 +128,8 @@
     if (e.key === "ArrowLeft") go(-1);
   });
 
-  const apply = () => {
-    root.classList.toggle("is-viewer", desktop.matches);
-    if (desktop.matches) {
-      const id = location.hash.slice(1);
-      if (series[id]) current = id;
-      render();
-    }
-  };
-  desktop.addEventListener("change", apply);
-  apply();
+  root.classList.add("is-viewer");
+  const startId = location.hash.slice(1);
+  if (series[startId]) current = startId;
+  render();
 })();

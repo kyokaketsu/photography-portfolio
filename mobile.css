@@ -1,0 +1,169 @@
+/* 手机端（768px 以下）：外观与桌面统一（白底、Helvetica Neue / Arial 全大写），单张浏览。 */
+@media (max-width: 768px) {
+  :root {
+    --paper: #ffffff;
+    --ink: #1f1f1f;
+    --muted: #8a8a8a;
+    --line: #ececec;
+    --menu-toolbar-tint: #ffffff;
+    --font-display: "Helvetica Neue", Arial, sans-serif;
+    --font-brand: "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Helvetica Neue", Arial, sans-serif;
+    --font-meta: "Helvetica Neue", Arial, sans-serif;
+  }
+  body { background: #fff; -webkit-font-smoothing: auto; }
+
+  /* 顶栏：站名 + MENU，同为 13px 全大写 */
+  .site-sidebar .brand,
+  .menu-toggle,
+  .menu-toggle span {
+    font-family: var(--font-brand);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  /* 去掉 About / Contact、开场的说明行、系列编号与说明、小节标签 */
+  #about, #contact,
+  .photo-first-meta,
+  .series-heading .series-number,
+  .series-heading .series-copy p,
+  .series-heading .series-count,
+  .work-series .movement > .movement-label { display: none !important; }
+
+  /* 系列名只留一行小字作分段 */
+  .series-heading { border-top: 0 !important; padding-top: 0 !important; margin-top: 72px !important; margin-bottom: 20px !important; min-height: 0 !important; }
+  .series-heading h2 { font-family: var(--font-display); font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: uppercase; line-height: 1.4; margin: 0; }
+  .photo-first-opening { padding-top: 76px !important; min-height: 0 !important; }
+
+  /* 图注：灰色小字 */
+  .work-card figcaption,
+  .work-card figcaption span { font-family: var(--font-meta); font-size: 11px; letter-spacing: 0; text-transform: uppercase; color: var(--muted); }
+
+  /* 菜单：只列四个系列 */
+  .menu-panel .nav-work-group > a[href="#works"],
+  .menu-panel .nav-primary-group,
+  .menu-panel .nav-instagram,
+  .menu-panel .menu-meta { display: none !important; }
+  .menu-panel .nav-children { padding: 0 !important; margin: 0 !important; border: 0 !important; }
+  .menu-panel .nav-sub {
+    display: block; padding: 0 !important; margin: 0 !important;
+    font-family: var(--font-body); font-size: 13px; font-weight: 400; letter-spacing: 0; line-height: 2.5;
+    text-transform: uppercase; color: var(--ink) !important; opacity: 1 !important;
+  }
+  .menu-panel .nav-sub::before { display: none !important; }
+}
+
+/* 第二轮：收紧系列之间的空白，去掉分隔线，顶栏与菜单底色改为白 */
+@media (max-width: 768px) {
+  .works-section { padding-top: 0 !important; }
+  .work-series { border-top: 0 !important; margin-top: 0 !important; padding-top: 0 !important; }
+  .series-heading { margin-top: 88px !important; }
+  #field-color .series-heading { margin-top: 64px !important; }
+  .site-sidebar::before { background: rgba(255, 255, 255, .92); }
+  html.is-header-scrolled .site-sidebar::before { border-bottom-color: transparent; }
+  .menu-backdrop { background: rgba(255, 255, 255, .97) !important; }
+  .menu-toolbar-blend { background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #fff 38%, #fff 100%); }
+  .menu-panel .nav-work-group { border-bottom: 0 !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }
+}
+
+/* 手机端单张浏览（参考 Mitch Epstein 手机版）：一页只放一张照片，点左半边上一张、右半边下一张；
+   上方留白，照片居中，下面是编号、页码、系列名（加粗）和说明 */
+.viewer-note { display: none; }
+@media (max-width: 768px) {
+  html.is-viewer, html.is-viewer body { height: 100%; overflow: hidden; background: #fff; }
+  html.is-viewer .photo-first-opening,
+  html.is-viewer .works-section,
+  html.is-viewer #about,
+  html.is-viewer #contact { display: none !important; }
+  html.is-viewer main { padding: 0 !important; margin: 0 !important; }
+  html.is-viewer .viewer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 100svh;
+    padding: 68px 20px 48px;
+  }
+  html.is-viewer .viewer-figure { margin: 0; }
+  html.is-viewer .viewer-stage { position: relative; line-height: 0; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  html.is-viewer .viewer-image {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: calc(100svh - 68px - 48px - 170px);
+  }
+  html.is-viewer .viewer-caption {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font: 400 11px/1.4 "Helvetica Neue", Arial, sans-serif;
+    text-transform: uppercase;
+    color: #8a8a8a;
+  }
+  html.is-viewer .viewer-note { display: block; margin-top: 28px; }
+  html.is-viewer .viewer-note p { margin: 0; font-family: "Helvetica Neue", Arial, sans-serif; color: #1f1f1f; letter-spacing: 0; }
+  html.is-viewer .viewer-note-title { font-size: 13px; font-weight: 700; text-transform: uppercase; line-height: 1.4; }
+  html.is-viewer .viewer-note-text { margin-top: 12px !important; font-size: 15px; line-height: 1.6; color: #333 !important; }
+}
+@media (max-width: 768px) {
+  /* 文字只在每个系列首张出现；其他张保留同样高度的空位，照片位置不跳 */
+  html.is-viewer .viewer-note { min-height: 82px; }
+}
+
+/* 第五版：顶栏去掉站名，左边换成 Instagram、邮箱图标（照片撑满试过，用户选回左右留边） */
+@media (max-width: 768px) {
+
+  html.is-viewer .site-sidebar .brand { display: none !important; }
+  html.is-viewer .site-sidebar > .viewer-links {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 6px;
+    margin: 0 auto 0 -8px;
+    order: -1;
+  }
+  html.is-viewer .site-sidebar > .viewer-links a { display: inline-flex; padding: 8px; color: #1f1f1f; }
+  html.is-viewer .site-sidebar > .viewer-links svg { width: 20px; height: 20px; }
+}
+@media (max-width: 768px) {
+  /* 开场文字（原 About）分段显示 */
+  html.is-viewer .viewer-note-text { white-space: pre-line; }
+}
+
+/* iOS Safari 的悬浮工具栏盖在页面最下面，并在其上方画一条白色渐隐带；
+   单张浏览的内容整体停在工具栏上方（底部留 安全区 + 64px），照片和文字都不会被盖住 */
+@media (max-width: 768px) {
+  html.is-viewer { --viewer-bottom-space: calc(env(safe-area-inset-bottom) + 64px); }
+  html.is-viewer .viewer { padding-bottom: var(--viewer-bottom-space); }
+  html.is-viewer .viewer-image { max-height: calc(100svh - 68px - var(--viewer-bottom-space) - 150px); }
+  html.is-viewer .menu-toolbar-blend { display: none !important; }
+}
+@media (max-width: 768px) {
+  /* 浏览区固定为整块屏幕（之前从顶栏下方 68px 起算又占满 100svh，底部 68px 跑出屏幕，居中位置偏低） */
+  html.is-viewer .viewer { position: fixed; z-index: 1; inset: 0; height: auto; }
+}
+
+/* 三段式：顶栏在上，照片（含编号行）在中间，开场文字固定在底部、工具栏上方。
+   文字不再占照片组的高度，首屏照片和其他张停在同一位置 */
+@media (max-width: 768px) {
+  html.is-viewer .viewer-note {
+    position: fixed;
+    right: 20px;
+    bottom: var(--viewer-bottom-space);
+    left: 20px;
+    min-height: 0;
+    margin: 0;
+  }
+  html.is-viewer .viewer:not(.has-note) .viewer-note { display: none; }
+}
+@media (max-width: 768px) {
+  html.is-viewer .viewer-note { bottom: calc(var(--viewer-bottom-space) + 12px); }
+}
+/* 矮屏（如 iPhone SE）文字稍小，和照片编号行之间留出空隙 */
+@media (max-width: 768px) and (max-height: 700px) {
+  html.is-viewer .viewer-note-text { font-size: 14px; line-height: 1.5; }
+}
