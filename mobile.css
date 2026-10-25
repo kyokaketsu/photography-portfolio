@@ -167,3 +167,8 @@
 @media (max-width: 768px) and (max-height: 700px) {
   html.is-viewer .viewer-note-text { font-size: 14px; line-height: 1.5; }
 }
+
+/* 照片整体略往上移：底部多留 8svh，照片在剩余空间里居中，等于上移约 4svh（390 宽约 34px）；首屏文字位置不变 */
+@media (max-width: 768px) {
+  html.is-viewer .viewer { padding-bottom: calc(var(--viewer-bottom-space) + 8svh); }
+}
