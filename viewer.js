@@ -31,7 +31,7 @@
   viewer.innerHTML = `<figure class="viewer-figure"><div class="viewer-stage"><img class="viewer-image" alt="" decoding="async" /></div><figcaption class="viewer-caption"><span class="viewer-title"></span><span class="viewer-count"></span></figcaption><div class="viewer-note"><p class="viewer-note-title"></p><p class="viewer-note-text"></p></div></figure>`;
   main.prepend(viewer);
   const stage = viewer.querySelector(".viewer-stage");
-  const image = viewer.querySelector(".viewer-image");
+  let image = viewer.querySelector(".viewer-image");
   const titleEl = viewer.querySelector(".viewer-title");
   const countEl = viewer.querySelector(".viewer-count");
   const noteTitle = viewer.querySelector(".viewer-note-title");
@@ -52,28 +52,46 @@
   let current = "field-color";
   let index = 0;
 
-  const preload = (item) => { if (!item) return; const i = new Image(); i.sizes = image.sizes; i.srcset = item.srcset; i.src = item.src; };
+  const preload = (item) => { if (!item) return; const i = new Image(); i.sizes = "100vw"; i.srcset = item.srcset; i.src = item.src; };
+  // 预览（翻页稳定）：先在后台把下一张解码好，再连同编号、页码一起换上；
+  // 解码前旧照片和旧编号保持不动，不会出现「编号已变、照片未到」或中间一帧空白
+  let renderToken = 0;
   const render = () => {
     const list = series[current] || [];
     const item = list[index];
     if (!item) return;
-    image.srcset = item.srcset;
-    image.sizes = "100vw"; // 让固有宽度不小于可用宽度，再由 max-width / max-height 等比收缩
-    image.src = item.src;
-    image.width = item.width;
-    image.height = item.height;
-    image.alt = item.alt;
-    titleEl.textContent = item.title;
-    countEl.textContent = `${index + 1} / ${list.length}`;
-    // 开场文字只在 Field / Color 第 1 张出现（手机端显示，桌面端隐藏）
-    const isOpening = current === "field-color" && index === 0;
-    noteTitle.textContent = isOpening ? openingText.title : "";
-    noteText.textContent = isOpening ? openingText.text : "";
-    viewer.classList.toggle("has-note", isOpening);
+    const token = ++renderToken;
+    const shownIndex = index;
+    const shownSeries = current;
     for (const a of nav.querySelectorAll(".nav-sub")) a.classList.toggle("is-current", a.getAttribute("href") === `#${current}`);
+    const next = new Image();
+    next.className = "viewer-image";
+    next.decoding = "async";
+    next.sizes = "100vw"; // 让固有宽度不小于可用宽度，再由 max-width / max-height 等比收缩
+    next.srcset = item.srcset;
+    next.src = item.src;
+    next.width = item.width;
+    next.height = item.height;
+    next.alt = item.alt;
+    const decoded = next.decode ? next.decode().catch(() => {}) : new Promise((done) => { next.onload = next.onerror = done; });
+    // 网络太慢时最多等 2.5 秒，之后照常换上（浏览器边下边显示）
+    Promise.race([decoded, new Promise((done) => setTimeout(done, 2500))]).then(() => {
+      if (token !== renderToken) return; // 期间又翻了页，以最新一次为准
+      image.replaceWith(next);
+      image = next;
+      titleEl.textContent = item.title;
+      countEl.textContent = `${shownIndex + 1} / ${list.length}`;
+      // 开场文字只在 Field / Color 第 1 张出现（手机端显示，桌面端隐藏）
+      const isOpening = shownSeries === "field-color" && shownIndex === 0;
+      noteTitle.textContent = isOpening ? openingText.title : "";
+      noteText.textContent = isOpening ? openingText.text : "";
+      viewer.classList.toggle("has-note", isOpening);
+      updateCursor(lastSide);
+    });
+    // 预加载前后各一张，再多备一张下一张（连点时少等）
     preload(list[index + 1]);
+    preload(list[index + 2]);
     preload(list[index - 1]);
-    updateCursor(lastSide);
   };
   const go = (step) => {
     const list = series[current] || [];
