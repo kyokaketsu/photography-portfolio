@@ -87,6 +87,10 @@
       noteText.textContent = isOpening ? openingText.text : "";
       viewer.classList.toggle("has-note", isOpening);
       updateCursor(lastSide);
+      // 预览（网址记第几张）：第 1 张仍是 #color，之后写成 #color/3；只替换、不新增返回记录
+      // 首页那张（Field / Color 第 1 张）保持不带井号的网址
+      const hash = shownSeries === "field-color" && !shownIndex ? "" : `#${shownSeries}${shownIndex ? "/" + (shownIndex + 1) : ""}`;
+      history.replaceState(null, "", hash || location.pathname + location.search);
     });
     // 预加载前后各一张，再多备一张下一张（连点时少等）
     preload(list[index + 1]);
@@ -147,7 +151,12 @@
   });
 
   root.classList.add("is-viewer");
-  const startId = location.hash.slice(1);
-  if (series[startId]) current = startId;
+  // 打开时读 #系列/第几张；编号不存在就从该系列第 1 张开始
+  const [startId, startNo] = location.hash.slice(1).split("/");
+  if (series[startId]) {
+    current = startId;
+    const n = parseInt(startNo, 10);
+    if (n >= 1 && n <= series[startId].length) index = n - 1;
+  }
   render();
 })();
