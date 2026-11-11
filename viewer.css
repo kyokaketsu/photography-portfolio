@@ -138,3 +138,8 @@
 @media (min-width: 769px) {
   html.is-viewer .menu-panel .nav-sub { line-height: 2.5; }
 }
+
+/* 个别照片靠右（index.html 里 data-align="right"）：右边缘对齐横幅照片的右边缘。只在电脑上生效。 */
+@media (min-width: 769px) {
+  html.is-viewer .viewer.is-align-right .viewer-stage { display: flex; justify-content: flex-end; width: calc(100vw - var(--sidebar-width) - var(--viewer-gap) - var(--frame-right)); }
+}

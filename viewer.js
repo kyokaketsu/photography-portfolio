@@ -14,6 +14,7 @@
     height: img.getAttribute("height"),
     alt: img.getAttribute("alt") || "",
     title,
+    align: img.closest(".photo-button")?.dataset.align || "", // 个别照片可设 data-align="right"（只在电脑上靠右）
   });
   const series = {};
   for (const id of seriesIds) {
@@ -86,6 +87,7 @@
       noteTitle.textContent = isOpening ? openingText.title : "";
       noteText.textContent = isOpening ? openingText.text : "";
       viewer.classList.toggle("has-note", isOpening);
+      viewer.classList.toggle("is-align-right", item.align === "right");
       updateCursor(lastSide);
       // 预览（网址记第几张）：第 1 张仍是 #color，之后写成 #color/3；只替换、不新增返回记录
       // 首页那张（Field / Color 第 1 张）保持不带井号的网址
