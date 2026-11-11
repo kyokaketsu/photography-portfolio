@@ -139,7 +139,7 @@
   html.is-viewer .menu-panel .nav-sub { line-height: 2.5; }
 }
 
-/* 个别照片靠右（index.html 里 data-align="right"）：右边缘对齐横幅照片的右边缘。只在电脑上生效。 */
+/* 个别照片靠右（index.html 里 data-align="right"）：右边缘对齐横幅照片的右边缘。横幅照片在很宽的屏幕上会被高度限制，所以取「最大宽度」和「最大高度 × 3:2」中较小的一个。只在电脑上生效。 */
 @media (min-width: 769px) {
-  html.is-viewer .viewer.is-align-right .viewer-stage { display: flex; justify-content: flex-end; width: calc(100vw - var(--sidebar-width) - var(--viewer-gap) - var(--frame-right)); }
+  html.is-viewer .viewer.is-align-right .viewer-stage { display: flex; justify-content: flex-end; width: min(calc(100vw - var(--sidebar-width) - var(--viewer-gap) - var(--frame-right)), calc((100svh - var(--frame) - var(--frame-bottom)) * 1.5)); }
 }
