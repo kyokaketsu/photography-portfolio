@@ -1,0 +1,8 @@
+/* 底色：冷灰 #e7ebee（稍偏蓝）。文字和照片颜色不变。 */
+:root, html.is-viewer { --paper: #e7ebee !important; --menu-toolbar-tint: #e7ebee !important; }
+html, body, html.is-viewer, html.is-viewer body { background: #e7ebee !important; }
+@media (max-width: 768px) {
+  .site-sidebar::before { background: rgba(231, 235, 238, .92) !important; }
+  .menu-backdrop { background: rgba(231, 235, 238, .97) !important; }
+  .menu-toolbar-blend { background: linear-gradient(to bottom, rgba(231, 235, 238, 0) 0%, #e7ebee 38%, #e7ebee 100%) !important; }
+}
