@@ -1,45 +1,4 @@
-@font-face {
-  font-family: "Gelasio";
-  src: url("fonts/Gelasio-400.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Lexend Deca";
-  src: url("fonts/LexendDeca-400.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Manrope";
-  src: url("fonts/Manrope-200.woff2") format("woff2");
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Manrope";
-  src: url("fonts/Manrope-300.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url("fonts/IBMPlexMono-200.woff2") format("woff2");
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url("fonts/IBMPlexMono-300.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
+/* 字体只有一种：EB Garamond，在 type.css 里声明。改版前的四种旧字体已移除。 */
 
 :root {
   --paper: #f4f3ee;
@@ -47,10 +6,10 @@
   --muted: #706b61;
   --line: #dfdcd2;
   --menu-toolbar-tint: #efeee8;
-  --font-display: Georgia, "Gelasio", "Times New Roman", serif;
-  --font-brand: "Lexend Deca", Arial, sans-serif;
-  --font-body: "Manrope", Arial, sans-serif;
-  --font-meta: "IBM Plex Mono", monospace;
+  --font-display: "EB Garamond", "Yu Mincho", "游明朝体", "Hiragino Mincho ProN", serif;
+  --font-brand: "EB Garamond", "Yu Mincho", "游明朝体", "Hiragino Mincho ProN", serif;
+  --font-body: "EB Garamond", "Yu Mincho", "游明朝体", "Hiragino Mincho ProN", serif;
+  --font-meta: "EB Garamond", "Yu Mincho", "游明朝体", "Hiragino Mincho ProN", serif;
   --sidebar-width: clamp(184px, 13vw, 244px);
   --content-padding: clamp(38px, 3.6vw, 72px);
 }
