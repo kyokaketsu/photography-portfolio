@@ -1,0 +1,39 @@
+/* 字体：EB Garamond（开源，SIL OFL，许可见 fonts/EBGaramond-OFL.txt），自己托管，不连外部服务。
+   大小写混排；桌面站名 28px、目录 18px、编号 14px。只在单张浏览（html.is-viewer）下生效。 */
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("fonts/EBGaramond-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+html.is-viewer body,
+html.is-viewer body * { font-family: "EB Garamond", "Yu Mincho", "游明朝体", "Hiragino Mincho ProN", serif !important; }
+
+html.is-viewer .brand,
+html.is-viewer .menu-toggle,
+html.is-viewer .menu-toggle span,
+html.is-viewer .menu-panel a,
+html.is-viewer .menu-panel .nav-sub,
+html.is-viewer .viewer-caption,
+html.is-viewer .viewer-note-title { text-transform: none !important; }
+
+@media (min-width: 769px) {
+  /* 站名字顶仍对齐照片顶边（照片位置不动，只挪文字） */
+  html.is-viewer .site-sidebar { padding-top: 53px !important; }
+  html.is-viewer .brand { font-size: 28px !important; line-height: 1 !important; }
+  html.is-viewer .menu-panel a,
+  html.is-viewer .menu-panel .nav-sub { font-size: 18px !important; line-height: 1.7 !important; }
+  html.is-viewer .viewer-caption { font-size: 14px !important; line-height: 1.45 !important; }
+}
+
+@media (max-width: 768px) {
+  html.is-viewer .menu-toggle,
+  html.is-viewer .menu-toggle span { font-size: 17px !important; }
+  html.is-viewer .menu-panel .nav-sub { font-size: 20px !important; line-height: 2 !important; }
+  html.is-viewer .viewer-caption { font-size: 14px !important; }
+  html.is-viewer .viewer-note-title { font-size: 16px !important; font-weight: 600 !important; }
+  html.is-viewer .viewer-note-text { font-size: 16px !important; line-height: 1.5 !important; }
+}
