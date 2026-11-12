@@ -22,8 +22,8 @@ html.is-viewer .viewer-note-title { text-transform: none !important; }
 
 @media (min-width: 769px) {
   /* 站名字顶仍对齐照片顶边（照片位置不动，只挪文字） */
-  html.is-viewer .site-sidebar { padding-top: 54px !important; }
-  html.is-viewer .brand { font-size: 24px !important; line-height: 1 !important; }
+  html.is-viewer .site-sidebar { padding-top: 56px !important; }
+  html.is-viewer .brand { font-size: 17px !important; line-height: 1 !important; }
   html.is-viewer .menu-panel a,
   html.is-viewer .menu-panel .nav-sub { font-size: 15px !important; line-height: 1.8 !important; }
   html.is-viewer .viewer-caption { font-size: 13px !important; line-height: 1.45 !important; }
