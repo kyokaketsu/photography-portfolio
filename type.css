@@ -34,6 +34,18 @@ html.is-viewer .viewer-note-title { text-transform: none !important; }
   html.is-viewer .menu-toggle span { font-size: 17px !important; }
   html.is-viewer .menu-panel .nav-sub { font-size: 20px !important; line-height: 2 !important; }
   html.is-viewer .viewer-caption { font-size: 14px !important; }
-  html.is-viewer .viewer-note-title { font-size: 16px !important; font-weight: 600 !important; }
-  html.is-viewer .viewer-note-text { font-size: 16px !important; line-height: 1.5 !important; }
+  html.is-viewer .viewer-note-title { font-size: 16px !important; font-weight: 600 !important; text-wrap: balance; }
+  html.is-viewer .viewer-note-text { font-size: 16px !important; line-height: 1.5 !important; text-wrap: pretty; }
+}
+
+/* 支持 CSS text-box 的现代浏览器直接裁切字形度量顶边，与照片共享 --frame，替代 55px 人工像素补偿 */
+@supports (text-box-trim: trim-start) {
+  @media (min-width: 769px) {
+    html.is-viewer .site-sidebar { padding-top: var(--frame) !important; }
+    html.is-viewer .brand {
+      display: block;
+      text-box-trim: trim-start;
+      text-box-edge: cap alphabetic;
+    }
+  }
 }
